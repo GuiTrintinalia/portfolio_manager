@@ -74,6 +74,8 @@ tipo_dados = st.sidebar.selectbox('Tipo de dados', ['info','history','actions'])
 
 # Get Tickers from yahoo finance
 msft = yf.Ticker("MSFT")
+st.subheader("Historical Data")
+st.dataframe(msft.history)
 
 # Displaying Dividends
 st.subheader("Dividends")
