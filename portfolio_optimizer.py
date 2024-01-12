@@ -56,7 +56,6 @@ def candlestick_chart(dfs, selected_var):
 st.set_page_config(page_title='Rebalanceador de carteira', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Rebalanceador de carteira")
 
-st.subheader('Selecione data histórica da carteira',divider='rainbow')
 # Importar SessionState
 class SessionState:
     def __init__(self, **kwargs):
@@ -69,10 +68,17 @@ def get_session():
 
 session_state = get_session()
 
+st.subheader('Crie sua carteira',divider='rainbow')
+
+tipo_dados = st.sidebar.button('Tipo de dados', ['info','history','actions'])
+
 # Get Tickers from yahoo finance
 msft = yf.Ticker("MSFT")
-st.write(msft)
 hist = msft.history(period="1mo")
-st.dataframe(hist)
+info = msft.info
+actions = msft.actions
 
+st.dataframe(hist)
+st.dataframe(info)
+st.dataframe(actions)
 
