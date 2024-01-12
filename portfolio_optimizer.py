@@ -71,7 +71,7 @@ session_state = get_session()
 
 # Get Tickers from yahoo finance
 msft = yf.Ticker("MSFT")
-st.write(msft.info)
+st.write(msft)
 hist = msft.history(period="1mo")
 st.dataframe(hist)
 
