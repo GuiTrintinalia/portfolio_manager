@@ -70,12 +70,10 @@ session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
 
-tipo_dados = st.sidebar.button('Tipo de dados', ['info','history','actions'])
+tipo_dados = st.sidebar.selectbox('Tipo de dados', ['info','history','actions'])
 
 # Get Tickers from yahoo finance
 msft = yf.Ticker("MSFT")
-
-
 
 # Displaying Dividends
 st.subheader("Dividends")
