@@ -57,9 +57,6 @@ st.set_page_config(page_title='Rebalanceador de carteira', layout = 'wide', init
 st.title("Rebalanceador de carteira")
 
 st.subheader('Selecione data histórica da carteira',divider='rainbow')
-
-st.
-
 # Importar SessionState
 class SessionState:
     def __init__(self, **kwargs):
