@@ -75,10 +75,8 @@ tipo_dados = st.sidebar.button('Tipo de dados', ['info','history','actions'])
 # Get Tickers from yahoo finance
 msft = yf.Ticker("MSFT")
 hist = msft.history(period="1mo")
-info = msft.info
 actions = msft.actions
 
 st.dataframe(hist)
-st.dataframe(info)
 st.dataframe(actions)
 
