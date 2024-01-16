@@ -87,8 +87,8 @@ session_state = get_session()
 st.subheader('Crie sua carteira',divider='rainbow')
 type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
 
-@st.cache(allow_output_mutation=True)
-session_state.ticker_list = get_tickers()
+list = get_tickers()
+st.write(list)
 
 tickers_list = st.multiselect('Tickers Disponíveis:', session_state.tickers)
 if tickers_list:
