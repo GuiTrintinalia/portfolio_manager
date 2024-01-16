@@ -66,7 +66,7 @@ def donwload_data(tickers, period):
 
 def get_tickers():
     tickers_table = yf.Tickers('')
-    tickers_list = tabela_tickers.tickers.keys()
+    tickers_list = tickers_table.tickers.keys()
     return tickers_list
 
 ## Configuração da página e do título
