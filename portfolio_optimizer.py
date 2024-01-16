@@ -78,7 +78,7 @@ session_state = get_session()
 st.subheader('Crie sua carteira',divider='rainbow')
 tipo_dados = st.sidebar.selectbox('Tipo de dados', ['info','history','actions'])
 
-tickers = ['AAPL']
+tickers = ['AAPL', 'MSFT', 'GOOGL']
 session_state.dados = baixar_dados(tickers)
 
 if session_state.dados is not None:
