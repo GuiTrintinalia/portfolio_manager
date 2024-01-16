@@ -64,8 +64,7 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(df=None, data=None)
-
+    return SessionState(df=None, data=pd.DataFrame())
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
