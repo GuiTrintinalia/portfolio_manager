@@ -58,8 +58,6 @@ def baixar_dados(tickers):
         ticker_obj = yf.Ticker(ticker)
         hist = ticker_obj.history(period='1mo')
         df = pd.concat([df, hist])
-        st.write(df)
-    return df
 
         
 ## Configuração da página e do título
