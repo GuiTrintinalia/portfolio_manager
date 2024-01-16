@@ -65,7 +65,7 @@ def donwload_data(tickers, period):
     return df
 
 def load_tickers_dictionary():
-    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt?token=GHSAT0AAAAAACMYOAV7AURVVHBW3QB72BOSZNHCY4A'
+    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/portfolio_optimizer.py'
     response = requests.get(github_raw_url)
     if response.status_code == 200:
         return json.loads(response.text)
