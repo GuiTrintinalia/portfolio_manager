@@ -80,7 +80,8 @@ session_state = get_session()
 st.subheader('Crie sua carteira',divider='rainbow')
 tipo_dados = st.sidebar.selectbox('Tipo de dados', ['info','history','actions'])
 
-tickers = ['AAPL', 'MSFT', 'GOOGL']
+tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL,MSFT):')
+tickers = [ticker.strip() for ticker in tickers.split(',')]
 session_state.dados = baixar_dados(tickers)
 
 if session_state.dados is not None:
