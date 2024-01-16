@@ -86,7 +86,7 @@ if tickers_list:
     tickers = tickers_list
 else:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
-st.write('f Selected Tickers: \n {tickers}')
+st.write(f' Selected Tickers: \n {tickers}')
 
 if st.button("Baixar Dados"):
     session_state.dados = baixar_dados(tickers)
