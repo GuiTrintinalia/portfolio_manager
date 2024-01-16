@@ -93,7 +93,8 @@ selected_timeframe  = st.selectbox('Choose the timeframe:', timeframe)
 
 frame1, frame2 = st.columns(2)
 with frame1:
-    start_date = st.date_input('Starting Date:', value=datetime.now() - timedelta(days=365), '2000-01-01')
+    min_date = datetime(2000, 1, 1)
+    start_date = st.date_input('Starting Date:', value=datetime.now() - timedelta(days=365), min_value=min_date)
     start_date = start_date.strftime('%Y-%m-%d')
 with frame2:
     if selected_timeframe is not None:
