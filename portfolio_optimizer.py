@@ -53,8 +53,11 @@ def candlestick_chart(dfs, selected_var):
     return fig
 
 def baixar_dados(tickers): 
-    ticker_obj = yf.Ticker(tickers)
-    df = ticker_obj.history(period='1mo')
+    df = pd.DataFrame()
+    for ticker in tickers:
+        ticker_obj = yf.Ticker(ticker)
+        hist = ticker_obj.history(period='1mo')
+        df = pd.concat([df, hist], axis=1)  # Concatenar adicionando colunas
     return df
         
 ## Configuração da página e do título
@@ -79,13 +82,11 @@ tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, 
 tickers = [ticker.strip() for ticker in tickers.split(',')]
 st.write(tickers)
 
-# session_state.dados = baixar_dados(tickers)
-# if st.button("Baixar Dados"):
-#     session_state.dados = baixar_dados(tickers)
-#     if session_state.dados is not None:
-#         st.dataframe(session_state.dados)
-
-tickers = 'msft aapl'
 session_state.dados = baixar_dados(tickers)
-st.dataframe(session_state.dados) 
+if st.button("Baixar Dados"):
+    session_state.dados = baixar_dados(tickers)
+    if session_state.dados is not None:
+        st.dataframe(session_state.dados)
+
+
 
