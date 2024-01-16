@@ -64,85 +64,23 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(df=None, data=None, cleaned=False, messages=None)
+    return SessionState(df=None, data=None)
 
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
-
 tipo_dados = st.sidebar.selectbox('Tipo de dados', ['info','history','actions'])
+def baixar_dados(df, data_type, period='1mo'):
+    for ticker in df:
+        ticker_obj = yf.Ticker(ticker)
+        hist = ticker_obj.history(period=period)
+        session_state.dados = pd.concat([session_state.dados, hist])
 
-# Get Tickers from yahoo finance
-msft = yf.Ticker("MSFT")
-st.subheader("Historical Data")
-hist = msft.history(period="1mo")
-st.dataframe(hist)
+tickers = ['AAPL', 'MSFT']
+baixar_dados(tickers, tipo_dados)
 
-# Displaying Dividends
-st.subheader("Dividends")
-st.dataframe(msft.dividends)
 
-# Displaying Splits
-st.subheader("Splits")
-st.dataframe(msft.splits)
+    
 
-# Displaying Capital Gains
-st.subheader("Capital Gains")
-# Checking if the method exists for the selected stock
-if hasattr(msft, 'capital_gains'):
-    st.dataframe(msft.capital_gains)
-else:
-    st.write("Capital Gains data not available for this stock.")
 
-# Displaying Share Count
-st.subheader("Share Count")
-st.dataframe(msft.get_shares_full(start="2022-01-01", end=None))
-
-# Displaying Financials
-st.subheader("Income Statement")
-st.dataframe(msft.income_stmt)
-
-st.subheader("Quarterly Income Statement")
-st.dataframe(msft.quarterly_income_stmt)
-
-st.subheader("Balance Sheet")
-st.dataframe(msft.balance_sheet)
-
-st.subheader("Quarterly Balance Sheet")
-st.dataframe(msft.quarterly_balance_sheet)
-
-st.subheader("Cash Flow Statement")
-st.dataframe(msft.cashflow)
-
-st.subheader("Quarterly Cash Flow Statement")
-st.dataframe(msft.quarterly_cashflow)
-
-# Displaying Holders
-st.subheader("Major Holders")
-st.dataframe(msft.major_holders)
-
-st.subheader("Institutional Holders")
-st.dataframe(msft.institutional_holders)
-
-st.subheader("Mutual Fund Holders")
-st.dataframe(msft.mutualfund_holders)
-
-st.subheader("Insider Transactions")
-st.dataframe(msft.insider_transactions)
-
-st.subheader("Insider Purchases")
-st.dataframe(msft.insider_purchases)
-
-st.subheader("Insider Roster Holders")
-st.dataframe(msft.insider_roster_holders)
-
-# Displaying Recommendations
-st.subheader("Recommendations")
-st.dataframe(msft.recommendations)
-
-st.subheader("Recommendations Summary")
-st.dataframe(msft.recommendations_summary)
-
-st.subheader("Upgrades/Downgrades")
-st.dataframe(msft.upgrades_downgrades)
 
