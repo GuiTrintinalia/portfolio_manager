@@ -58,7 +58,7 @@ def baixar_dados(tickers):
     for ticker in tickers:
         ticker_obj = yf.Ticker(ticker)
         hist = ticker_obj.history(period='1mo')
-        hist.columns = [f"{ticker}_col_{col}" for col in hist.columns]  # Adicionar prefixo ao ticker
+        hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Adicionar prefixo ao ticker
         dfs.append(hist)
 
     df = pd.concat(dfs, axis=1)  # Concatenar pelo índice de datas
