@@ -52,12 +52,12 @@ def candlestick_chart(dfs, selected_var):
     fig = go.Figure(data=traces, layout=layout)
     return fig
 
-def baixar_dados(tickers): 
+def baixar_dados(tickers, period, start): 
     dfs = []
     
     for ticker in tickers:
         ticker_obj = yf.Ticker(ticker)
-        hist = ticker_obj.history(period='1mo')
+        hist = ticker_obj.history(period=period, start=start)
         hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Adicionar prefixo ao ticker
         dfs.append(hist)
 
@@ -86,10 +86,26 @@ if tickers_list:
     tickers = tickers_list
 else:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
-st.write(f' Selected Tickers: \n {tickers}')
+
+
+timeframe = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max']
+selected_timeframe  = st.selectbox('Choose the timeframe:', timeframe)
+
+frame1, frame2 = st.columns(2)
+
+with frame1:
+    start_date = st.date_input('Starting Date:', value=datetime.now() - timedelta(days=365))
+    start_date = start_date.strftime('%Y-%m-%d')
+
+with frame2:
+    if selected_timeframe is not None:
+         selected_timeframe
+    else:
+        selected_timeframe = '1d'
+
 
 if st.button("Baixar Dados"):
-    session_state.dados = baixar_dados(tickers)
+    session_state.dados = baixar_dados(tickers, selected_timeframe)
     if session_state.dados is not None:
         st.dataframe(session_state.dados)
 
