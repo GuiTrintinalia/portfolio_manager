@@ -64,12 +64,8 @@ def donwload_data(tickers, period):
     df = pd.concat(dfs, axis=1)  # Concatenar pelo índice de datas
     return df
 
-def get_tickers():
-    tickers_table = yf.Tickers('')
-    tickers_list = tickers_table.tickers.keys()
-    return tickers_list
-
-def load_tickers_dictionary(github_raw_url):
+def load_tickers_dictionary():
+    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt?token=GHSAT0AAAAAACMYOAV7AURVVHBW3QB72BOSZNHCY4A'
     response = requests.get(github_raw_url)
     if response.status_code == 200:
         return json.loads(response.text)
@@ -95,11 +91,9 @@ session_state = get_session()
 st.subheader('Crie sua carteira',divider='rainbow')
 type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
 
-# GitHub raw file URL
-github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt?token=GHSAT0AAAAAACMYOAV7AURVVHBW3QB72BOSZNHCY4A'
 
-@st.cache(allow_output_mutation=True)
-tickers_dictionary = load_tickers_dictionary(github_raw_url)
+#@st.cache(allow_output_mutation=True)
+tickers_dictionary = load_tickers_dictionary()
 
 # Check if the dictionary was successfully loaded
 if tickers_dictionary is not None:
