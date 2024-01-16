@@ -87,5 +87,5 @@ st.write(tickers)
 
 tickers = 'msft aapl'
 session_state.dados = baixar_dados(tickers)
-
+st.dataframe(session_state.dados) 
 
