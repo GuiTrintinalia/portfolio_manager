@@ -53,11 +53,15 @@ def candlestick_chart(dfs, selected_var):
     return fig
 
 def baixar_dados(tickers): 
-    df = pd.DataFrame()
+    dfs = []
+    
     for ticker in tickers:
         ticker_obj = yf.Ticker(ticker)
         hist = ticker_obj.history(period='1mo')
-        df = pd.concat([df, hist], axis=1)  # Concatenar adicionando colunas
+        hist.columns = [f"{ticker}_col_{col}" for col in hist.columns]  # Adicionar prefixo ao ticker
+        dfs.append(hist)
+
+    df = pd.concat(dfs, axis=1)  # Concatenar pelo índice de datas
     return df
         
 ## Configuração da página e do título
