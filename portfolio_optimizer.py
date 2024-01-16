@@ -52,7 +52,7 @@ def candlestick_chart(dfs, selected_var):
     fig = go.Figure(data=traces, layout=layout)
     return fig
 
-def baixar_dados(tickers, period): 
+def donwload_data(tickers, period): 
     dfs = []
     
     for ticker in tickers:
@@ -63,10 +63,15 @@ def baixar_dados(tickers, period):
 
     df = pd.concat(dfs, axis=1)  # Concatenar pelo índice de datas
     return df
-        
+
+def get_tickers():
+    tickers_table = yf.Tickers('')
+    tickers_list = tabela_tickers.tickers.keys()
+    return tickers_list
+
 ## Configuração da página e do título
-st.set_page_config(page_title='Rebalanceador de carteira', layout = 'wide', initial_sidebar_state = 'auto')
-st.title("Rebalanceador de carteira")
+st.set_page_config(page_title='Wallet Balancer', layout = 'wide', initial_sidebar_state = 'auto')
+st.title("Wallet Balancer")
 
 # Importar SessionState
 class SessionState:
@@ -76,12 +81,16 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(df=None, dados=pd.DataFrame())
+    return SessionState(tickers=None, data=pd.DataFrame())
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
 type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
-tickers_list = st.multiselect('Tickers Disponíveis:', ['AAPL', 'MSFT'])
+
+@st.cache(allow_output_mutation=True)
+session_state.tickers = get_tickers()
+
+tickers_list = st.multiselect('Tickers Disponíveis:', session_state.tickers)
 if tickers_list:
     tickers = tickers_list
 else:
@@ -91,9 +100,9 @@ else:
 selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
 
 if st.button("Download data"):
-    session_state.dados = baixar_dados(tickers, selected_timeframe)
-    if session_state.dados is not None:
-        st.dataframe(session_state.dados)
+    session_state.data = donwload_data(tickers, selected_timeframe)
+    if session_state.data is not None:
+        st.dataframe(session_state.data)
 
 
 
