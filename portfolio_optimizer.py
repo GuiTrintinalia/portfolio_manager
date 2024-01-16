@@ -69,7 +69,7 @@ def get_tickers():
     tickers_list = tickers_table.tickers.keys()
     return tickers_list
 
-def load_tickers_dictionary():
+def load_tickers_dictionary(github_raw_url):
     response = requests.get(github_raw_url)
     if response.status_code == 200:
         return json.loads(response.text)
@@ -99,7 +99,7 @@ type_tickers = st.text_input('Digite os tickers separados por vírgula (por exem
 github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt?token=GHSAT0AAAAAACMYOAV7AURVVHBW3QB72BOSZNHCY4A'
 
 @st.cache(allow_output_mutation=True)
-tickers_dictionary = load_tickers_dictionary()
+tickers_dictionary = load_tickers_dictionary(github_raw_url)
 
 # Check if the dictionary was successfully loaded
 if tickers_dictionary is not None:
