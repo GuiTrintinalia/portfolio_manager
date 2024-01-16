@@ -90,7 +90,7 @@ type_tickers = st.text_input('Digite os tickers separados por vírgula (por exem
 list = get_tickers()
 st.write(list)
 
-tickers_list = st.multiselect('Tickers Disponíveis:', 'APL')
+tickers_list = st.multiselect('Tickers Disponíveis:', ['APL'])
 if tickers_list:
     tickers = tickers_list
 else:
