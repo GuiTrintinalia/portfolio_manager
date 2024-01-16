@@ -58,7 +58,7 @@ def baixar_dados(tickers):
         ticker_obj = yf.Ticker(ticker)
         hist = ticker_obj.history(period='1mo')
         df = pd.concat([df, hist])
-
+    return df
         
 ## Configuração da página e do título
 st.set_page_config(page_title='Rebalanceador de carteira', layout = 'wide', initial_sidebar_state = 'auto')
@@ -80,6 +80,7 @@ tipo_dados = st.sidebar.selectbox('Tipo de dados', ['info','history','actions'])
 
 tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL,MSFT):')
 tickers = [ticker.strip() for ticker in tickers.split(',')]
+st.write(tickers)
 session_state.dados = baixar_dados(tickers)
 
 if session_state.dados is not None:
