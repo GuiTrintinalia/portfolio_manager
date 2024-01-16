@@ -92,20 +92,17 @@ timeframe = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'm
 selected_timeframe  = st.selectbox('Choose the timeframe:', timeframe)
 
 frame1, frame2 = st.columns(2)
-
 with frame1:
-    start_date = st.date_input('Starting Date:', value=datetime.now() - timedelta(days=365))
+    start_date = st.date_input('Starting Date:', value=datetime.now() - timedelta(days=365), '2000-01-01')
     start_date = start_date.strftime('%Y-%m-%d')
-
 with frame2:
     if selected_timeframe is not None:
          selected_timeframe
     else:
         selected_timeframe = '1d'
 
-
 if st.button("Baixar Dados"):
-    session_state.dados = baixar_dados(tickers, selected_timeframe)
+    session_state.dados = baixar_dados(tickers, selected_timeframe, start_date)
     if session_state.dados is not None:
         st.dataframe(session_state.dados)
 
