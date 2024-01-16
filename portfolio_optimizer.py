@@ -85,7 +85,7 @@ st.write(tickers)
 #     if session_state.dados is not None:
 #         st.dataframe(session_state.dados)
 
-tickers = 'msft aapl goog'
+tickers = 'msft aapl'
 session_state.dados = baixar_dados(tickers)
 
 
