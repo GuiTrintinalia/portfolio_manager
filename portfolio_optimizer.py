@@ -57,7 +57,7 @@ def baixar_dados(tickers):
     for ticker in tickers:
         ticker_obj = yf.Ticker(ticker)
         hist = ticker_obj.history(period='1mo')
-        df = pd.concat([df, hist])
+        df = pd.concat([df, hist], axis = 1)
     return df
         
 ## Configuração da página e do título
