@@ -90,11 +90,11 @@ type_tickers = st.text_input('Digite os tickers separados por vírgula (por exem
 list = get_tickers()
 st.write(list)
 
-# tickers_list = st.multiselect('Tickers Disponíveis:', session_state.tickers)
-# if tickers_list:
-#     tickers = tickers_list
-# else:
-#     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
+tickers_list = st.multiselect('Tickers Disponíveis:', 'APL')
+if tickers_list:
+    tickers = tickers_list
+else:
+    tickers = [ticker.strip() for ticker in type_tickers.split(',')]
 
 
 selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
