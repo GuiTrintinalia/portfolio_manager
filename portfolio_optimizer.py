@@ -52,12 +52,13 @@ def candlestick_chart(dfs, selected_var):
     fig = go.Figure(data=traces, layout=layout)
     return fig
 
-def baixar_dados(df, data_type, period='1mo'):
-    for ticker in df:
+def baixar_dados(tickers, data_type, period='1mo'):
+    df = pd.DataFrame()
+    for ticker in tickers:
         ticker_obj = yf.Ticker(ticker)
         hist = ticker_obj.history(period=period)
-        df.dados = pd.concat([df.dados, hist])
-        return df
+        df = pd.concat([df, hist])
+    return df
         
 ## Configuração da página e do título
 st.set_page_config(page_title='Rebalanceador de carteira', layout = 'wide', initial_sidebar_state = 'auto')
@@ -78,7 +79,7 @@ st.subheader('Crie sua carteira',divider='rainbow')
 tipo_dados = st.sidebar.selectbox('Tipo de dados', ['info','history','actions'])
 
 tickers = ['AAPL', 'MSFT']
-session_state.dados = baixar_dados(tickers, tipo_dados)
+session_state.dados = baixar_dados(tickers=tickers, tipo_dados)
 
 if session_state.dados is not None:
     st.dataframe(session_state.dados)
