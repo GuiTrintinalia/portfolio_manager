@@ -52,11 +52,11 @@ def candlestick_chart(dfs, selected_var):
     fig = go.Figure(data=traces, layout=layout)
     return fig
 
-def baixar_dados(tickers, data_type, period='1mo'):
+def baixar_dados(tickers): 
     df = pd.DataFrame()
     for ticker in tickers:
         ticker_obj = yf.Ticker(ticker)
-        hist = ticker_obj.history(period=period)
+        hist = ticker_obj.history(period='1mo')
         df = pd.concat([df, hist])
     return df
         
