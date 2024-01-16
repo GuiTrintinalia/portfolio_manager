@@ -69,6 +69,14 @@ def get_tickers():
     tickers_list = tickers_table.tickers.keys()
     return tickers_list
 
+def load_tickers_dictionary():
+    response = requests.get(github_raw_url)
+    if response.status_code == 200:
+        return json.loads(response.text)
+    else:
+        st.error(f"Failed to retrieve file. Status code: {response.status_code}")
+        return None
+
 ## Configuração da página e do título
 st.set_page_config(page_title='Wallet Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Wallet Balancer")
@@ -87,15 +95,22 @@ session_state = get_session()
 st.subheader('Crie sua carteira',divider='rainbow')
 type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
 
-list = get_tickers()
-st.write(list)
+# GitHub raw file URL
+github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt?token=GHSAT0AAAAAACMYOAV7AURVVHBW3QB72BOSZNHCY4A'
 
-tickers_list = st.multiselect('Tickers Disponíveis:', ['APL'])
+@st.cache(allow_output_mutation=True)
+tickers_dictionary = load_tickers_dictionary()
+
+# Check if the dictionary was successfully loaded
+if tickers_dictionary is not None:
+    # Extract values from the dictionary and create a multiselect dropdown
+    tickers_list = st.multiselect('Tickers Disponíveis:', list(tickers_dictionary.values()))
+
+
 if tickers_list:
     tickers = tickers_list
 else:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
-
 
 selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
 
