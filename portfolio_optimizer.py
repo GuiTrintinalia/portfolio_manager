@@ -87,7 +87,7 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(ticker_list=None, data=pd.DataFrame())
+    return SessionState(df=None, data=pd.DataFrame())
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
@@ -96,12 +96,14 @@ type_tickers = st.text_input('Digite os tickers separados por vírgula (por exem
 url = 'https://github.com/GuiTrintinalia/portfolio_manager/raw/main/tickers.pkl'
 
 if st.button('Load Tickers'):
-    session_state.ticker_list = load_data_from_github(url)
+    yahoo_list = load_data_from_github(url)
+    yahoo_list = list(yahoo_list.values())
 
-if session_state.ticker_list is not None:
-    # Extract values from the dictionary and create a multiselect dropdown
-    tickers_list = st.multiselect('Availabe Tickers:', list(session_state.ticker_list.values()))
-
+try:
+    tickers_list = st.multiselect('Availabe Tickers:', yahoo_list)
+else:
+    pass
+    
 if tickers_list:
     tickers = tickers_list
 else:
