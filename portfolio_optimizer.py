@@ -16,6 +16,7 @@ import time
 import riskfolio as rp
 import yfinance  as yf
 import plotly.graph_objects as go
+import io
 
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
