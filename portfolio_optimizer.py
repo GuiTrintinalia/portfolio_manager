@@ -85,6 +85,20 @@ def load_data_from_github(url):
     data = pd.read_pickle(content)
     return data
 
+def map_columns_and_rename(df, assets_list):
+    mapped_df = df.copy()
+
+    for name, ticker in assets_list.items():
+        # Check if ticker columns exist in the DataFrame
+        ticker_columns = [col for col in df.columns if col.startswith(f"{ticker}_")]
+        if ticker_columns:
+            # Map Ticker to Name and rename columns
+            mapped_ticker = f"{name}_"
+            mapped_df = mapped_df.rename(columns={ticker_col: ticker_col.replace(f"{ticker}_", f"{mapped_ticker}_") for ticker_col in ticker_columns})
+
+    return mapped_df
+
+
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Portfolio Balancer")
@@ -379,6 +393,7 @@ if tickers and isinstance(combined_dict, dict):
     session_state.data = download_data(selected_ticker_dict, selected_timeframe)
 elif tickers and isinstance(tickers, list):
     session_state.data = download_data(tickers, selected_timeframe)
+    session_state.data = map_columns_and_rename(session_state.data, assets_list):
 
 if st.button("Download data"):
     if session_state.data is not None:
