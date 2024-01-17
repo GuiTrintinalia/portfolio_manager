@@ -64,7 +64,6 @@ def donwload_data(tickers, period):
     df = pd.concat(dfs, axis=1)  # Concatenar pelo índice de datas
     return df
 
-@st.cache(allow_output_mutation=True)
 def load_tickers_dictionary():
     github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt'
     response = requests.get(github_raw_url)
