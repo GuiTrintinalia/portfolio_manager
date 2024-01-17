@@ -125,7 +125,7 @@ commodities_dict = { "BRENT CRUDE OIL LAST DAY FINANC": "BZ=F", "COCOA": "CC=F",
                     "SOYBEAN FUTURES": "ZS=F", "SOYBEAN OIL FUTURES": "ZL=F", "S&P COMPOSITE 1500 ESG TILTED I": "ZM=F",
                     "SUGAR": "SB=F", "WISDOMTREE INTERNATIONAL HIGH D": "GF=F"
                 }
-b3_stocks = 
+b3_stocks =         {
                     "3M": "MMMC34.SA", "ABBOTT LABORATORIES": "ABTT34.SA", "AES BRASIL": "AESB3.SA", "AF INVEST": "AFHI11.SA",
                     "AFLUENTE T": "AFLT3.SA", "AGRIBRASIL": "GRAO3.SA", "AGROGALAXY": "AGXY3.SA", "ALIANSCESONAE": "ALSO3.SA",
                     "ALLIAR": "AALR3.SA", "ALPER": "APER3.SA", "ALPHABET": "GOGL35.SA", "ALUPAR INVESTIMENTO": "ALUP4.SA",
@@ -184,6 +184,7 @@ b3_stocks =
                     "VALE": "VALE5.SA", "VERIZON": "VERZ34.SA", "VISA": "VISA34.SA", "VIVARA": "VIVA3.SA", "VIVEO": "VVEO3.SA", "VOTORANTIM ASSET MANAGEMENT": "VSEC11.SA", "WALMART": "WALM34.SA",
                     "WELLS FARGO": "WFCO34.SA", "WEST PHARMA": "W2ST34.SA", "WILSON SONS": "PORT3.SA", "XEROX": "XRXB34.SA", "XP INC": "XPBR31.SA", "ZYNGA INC": "Z2NG34.SA"
                     }
+
 indexes_dict =     {
                     S&P GSCI': 'GD=F', 'IBOVESPA': '^BVSP', 'S&P/CLX IPSA': '^IPSA',
                     'MERVAL': '^MERV', 'IPC MEXICO': '^MXX', 'S&P 500': '^GSPC',
