@@ -66,7 +66,7 @@ def donwload_data(tickers, period):
 
 
 def read_parquet_file():
-    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt'
+    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.parquet'
     response = requests.get(github_raw_url)
     buffer = io.BytesIO(response.content)
     df = pd.read_parquet(buffer)
