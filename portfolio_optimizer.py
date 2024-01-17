@@ -393,7 +393,7 @@ if tickers and isinstance(combined_dict, dict):
     session_state.data = download_data(selected_ticker_dict, selected_timeframe)
 elif tickers and isinstance(tickers, list):
     session_state.data = download_data(tickers, selected_timeframe)
-    session_state.data = map_columns_and_rename(session_state.data, assets_list)
+    #session_state.data = map_columns_and_rename(session_state.data, assets_list)
 
 if st.button("Download data"):
     if session_state.data is not None:
