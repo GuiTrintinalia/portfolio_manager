@@ -98,12 +98,11 @@ url = 'https://github.com/GuiTrintinalia/portfolio_manager/raw/main/tickers.pkl'
 if st.button('Load Tickers'):
     yahoo_list = load_data_from_github(url)
     yahoo_list = list(yahoo_list.values())
-
-try:
-    tickers_list = st.multiselect('Availabe Tickers:', yahoo_list)
+    tickers_list = st.multiselect('Available Tickers:', yahoo_list)
 else:
-    pass
-    
+    st.info("Pressione o botão para carregar os tickers.")
+
+
 if tickers_list:
     tickers = tickers_list
 else:
