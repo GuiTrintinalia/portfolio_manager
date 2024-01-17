@@ -362,7 +362,7 @@ for name in selected_dict_names:
 
 tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
 
-selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'],'5y' )
+selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
 selected_ticker_dict = {}
 for key in tickers:
     if key in combined_dict:
