@@ -361,18 +361,20 @@ sp500_dict = {
                 'INTERNATIONAL TELECOMMUNICATION UNION': 'ITU', 'INTERNET INCOME SOURCE': 'IIS',
                 'INTERPUBLIC GROUP OF COMPANIES INC.': 'IPG', 'INTUIT INC.': 'INTU', 'INTUITIVE SURGICAL INC.': 'ISRG'}
 
-assets_list = {'currencies': currencies_dict, 'crypto': crypto_dict, 'b3_stocks': b3_stocks, 'sp500': sp500_dict, 'indexes': indexes_dict}
-selected_dict_names = st.multiselect('Select dictionaries to combine', list(assets_list.keys()))
 selected_timeframes = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
+
+assets_list = {'currencies': currencies_dict, 'crypto': crypto_dict, 'b3_stocks': b3_stocks, 'sp500': sp500_dict, 'indexes': indexes_dict}
+
+selected_dict_names = st.multiselect('Select dictionaries to combine', list(assets_list.keys()))
 combined_dict = {}
 for name in selected_dict_names:
     dictionary = assets_list.get(name)
     if dictionary:
         combined_dict.update(dictionary)
-    
+if selected_dict_names:
     tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
     selected_ticker_dict = {}
-    if tickers and download_data:
+    if tickers and download_icon:
         for key in tickers:
             if key in combined_dict:
                 selected_ticker_dict[key] = combined_dict[key]
@@ -384,7 +386,7 @@ if type_tickers:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
     session_state.data = download_data(tickers, selected_timeframe)
     
-download_data =  st.button("Download data")
+download_icon =  st.button("Download data")
 if session_state.data is not None:
     st.dataframe(session_state.data)
 
