@@ -17,6 +17,7 @@ import riskfolio as rp
 import yfinance  as yf
 import plotly.graph_objects as go
 import io
+from io import BytesIO
 import pyarrow.parquet as pq
 
 
