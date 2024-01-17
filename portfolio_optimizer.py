@@ -348,7 +348,11 @@ sp500_dict = {
                 'INTERNATIONAL TELECOMMUNICATION UNION': 'ITU', 'INTERNET INCOME SOURCE': 'IIS',
                 'INTERPUBLIC GROUP OF COMPANIES INC.': 'IPG', 'INTUIT INC.': 'INTU', 'INTUITIVE SURGICAL INC.': 'ISRG'}
 
-assets_dict =  {**currencies_dict, **crypto_dict, **b3_stocks, **sp500_dict, **indexes_dict}
+ssets_dict = {**currencies_dict, **crypto_dict, **b3_stocks, **sp500_dict, **indexes_dict}
+
+# Step 1: Select the dictionary types
+selected_dict_keys = st.multiselect('Select the asset types', list(assets_dict.keys()))
+st.write(selected_dict_keys)
 
 selected_dict_key = st.selectbox('Select the asset type', list(assets_dict.keys()))
 if selected_dict_key:
