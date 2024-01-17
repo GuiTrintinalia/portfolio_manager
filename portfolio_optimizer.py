@@ -352,7 +352,7 @@ assets_list = [currencies_dict, crypto_dict, b3_stocks, sp500_dict, indexes_dict
 selected_dicts = st.multiselect('Select dictionaries to combine', [d.__name__ for d in assets_list])
 
 if selected_dicts:
-combined_dict = {}
+    combined_dict = {}
     for dictionary in assets_list:
         if dictionary.__name__ in selected_dicts:
             combined_dict.update(dictionary)
