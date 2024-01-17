@@ -101,7 +101,6 @@ def get_session():
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
-type_tickers = st.text_input('Type stock separed by comma ( AAPL, MSFT, ...):')
 
 currencies_dict  =  {'USD/JPY': 'USDJPY=X', 'USD/BRL': 'BRL=X', 'USD/ARS': 'ARS=X', 'USD/PYG': 'PYG=X', 'USD/UYU': 'UYU=X',
                      'USD/CNY': 'CNY=X', 'USD/KRW': 'KRW=X', 'USD/MXN': 'MXN=X', 'USD/IDR': 'IDR=X', 'USD/EUR': 'EUR=X',
