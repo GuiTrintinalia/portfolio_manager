@@ -64,7 +64,7 @@ def download_data(data, period):
         for name, ticker in data.items():
             ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
-            hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Add prefix to the name
+            hist.columns = [f"{name}_{col}" for col in hist.columns]  # Add prefix to the name
             dfs.append(hist)
     elif isinstance(data, list):
         # If input is a list, assume tickers directly without names
