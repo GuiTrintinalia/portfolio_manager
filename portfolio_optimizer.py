@@ -64,13 +64,20 @@ def donwload_data(tickers, period):
     df = pd.concat(dfs, axis=1)  # Concatenar pelo índice de datas
     return df
 
+@st.cache(allow_output_mutation=True)
 def load_tickers_dictionary():
-    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/portfolio_optimizer.py'
     response = requests.get(github_raw_url)
-    if response.status_code == 200:
-        return json.loads(response.text)
-    else:
+    
+    # Verificar se a requisição foi bem-sucedida
+    if response.status_code != 200:
         st.error(f"Failed to retrieve file. Status code: {response.status_code}")
+        return None
+    
+    # Tente decodificar o conteúdo como JSON
+    try:
+        return json.loads(response.text)
+    except json.JSONDecodeError as e:
+        st.error(f"Error decoding JSON content: {e}")
         return None
 
 ## Configuração da página e do título
