@@ -64,9 +64,14 @@ def donwload_data(tickers, period):
     df = pd.concat(dfs, axis=1)  # Concatenar pelo índice de datas
     return df
 
-def load_tickers_dictionary():
+
+def read_parquet_file():
     github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt'
     response = requests.get(github_raw_url)
+    buffer = io.BytesIO(response.content)
+    df = pd.read_parquet(buffer)
+    st.write('Tamanho total: ', df.shape)
+    return df
     
     # Verificar se a requisição foi bem-sucedida
     if response.status_code != 200:
@@ -98,12 +103,11 @@ session_state = get_session()
 st.subheader('Crie sua carteira',divider='rainbow')
 type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
 
-tickers_dictionary = load_tickers_dictionary()
+session_state.ticker_list = read_parquet_file()
 
-# Check if the dictionary was successfully loaded
-if tickers_dictionary is not None:
+if session_state.ticker_list is not None:
     # Extract values from the dictionary and create a multiselect dropdown
-    tickers_list = st.multiselect('Tickers Disponíveis:', list(tickers_dictionary.values()))
+    tickers_list = st.multiselect('Availabe Tickers:', list(session_state.ticker_list.values()))
 
 if tickers_list:
     tickers = tickers_list
