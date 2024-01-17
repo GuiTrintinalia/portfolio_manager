@@ -91,7 +91,7 @@ def get_session():
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
-type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
+type_tickers = st.text_input('Type stock separed by comma ( AAPL, MSFT, ...):')
 
 url = 'https://github.com/GuiTrintinalia/portfolio_manager/raw/main/tickers.pkl'
 
