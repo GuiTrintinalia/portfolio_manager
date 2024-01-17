@@ -362,17 +362,16 @@ for name in selected_dict_names:
 
 tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
 
+selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'],'5y' )
 selected_ticker_dict = {}
 for key in tickers:
     if key in combined_dict:
         selected_ticker_dict[key] = combined_dict[key]
-        selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
         session_state.data = download_data(selected_ticker_dict, selected_timeframe)
 
 type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
-    selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
 
 if st.button("Download data"):
     session_state.data = download_data(tickers, selected_timeframe)
