@@ -17,6 +17,8 @@ import riskfolio as rp
 import yfinance  as yf
 import plotly.graph_objects as go
 import io
+import pyarrow.parquet as pq
+
 
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
@@ -70,9 +72,16 @@ def read_parquet_file():
     github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.parquet'
     response = requests.get(github_raw_url)
     buffer = io.BytesIO(response.content)
-    df = pd.read_parquet(buffer)
-    st.write('Tamanho total: ', df.shape)
-    return df
+
+    # Tente ler diretamente usando pyarrow
+    try:
+        table = pq.read_table(buffer)
+        df = table.to_pandas()
+        st.write('Tamanho total: ', df.shape)
+        return df
+    except Exception as e:
+        st.error(f"Erro ao ler arquivo Parquet: {e}")
+        return None
     
     # Verificar se a requisição foi bem-sucedida
     if response.status_code != 200:
