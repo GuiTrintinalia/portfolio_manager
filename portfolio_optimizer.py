@@ -99,15 +99,12 @@ session_state = get_session()
 st.subheader('Crie sua carteira',divider='rainbow')
 type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
 
-
-#@st.cache(allow_output_mutation=True)
 tickers_dictionary = load_tickers_dictionary()
 
 # Check if the dictionary was successfully loaded
 if tickers_dictionary is not None:
     # Extract values from the dictionary and create a multiselect dropdown
     tickers_list = st.multiselect('Tickers Disponíveis:', list(tickers_dictionary.values()))
-
 
 if tickers_list:
     tickers = tickers_list
