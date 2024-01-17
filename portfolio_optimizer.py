@@ -56,12 +56,13 @@ def candlestick_chart(dfs, selected_var):
     fig = go.Figure(data=traces, layout=layout)
     return fig
 
+
 def download_data(data, period):
     dfs = []
 
     if isinstance(data, dict):
         for name, ticker in data.items():
-            ticker_obj = yf.Ticker(name)
+            ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
             hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Add prefix to the name
             dfs.append(hist)
@@ -350,6 +351,7 @@ assets_list = {'currencies': currencies_dict, 'crypto': crypto_dict, 'b3_stocks'
 
 # Create a multiselect to choose which dictionaries to combine
 selected_dict_names = st.multiselect('Select dictionaries to combine', list(assets_list.keys()))
+
 # Combine selected dictionaries
 combined_dict = {}
 for name in selected_dict_names:
@@ -357,24 +359,28 @@ for name in selected_dict_names:
     if dictionary:
         combined_dict.update(dictionary)
 
-
+# Select tickers from multiselect
 tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
 
-selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
-selected_ticker_dict = {}
-for key in tickers:
-    if key in combined_dict:
-        selected_ticker_dict[key] = combined_dict[key]
-        st.write(selected_ticker_dict)
-        session_state.data = download_data(selected_ticker_dict, selected_timeframe)
-
+# Handle tickers entered manually
 type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers:
-    tickers = [ticker.strip() for ticker in type_tickers.split(',')]
+    manual_tickers = [ticker.strip() for ticker in type_tickers.split(',')]
+    tickers.extend(manual_tickers)
+
+selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
+
+# Determine the type of tickers (dictionary or list) and use the appropriate function
+if tickers and isinstance(combined_dict, dict):
+    selected_ticker_dict = {}
+    for key in tickers:
+        if key in combined_dict:
+            selected_ticker_dict[key] = combined_dict[key]
+    session_state.data = download_data(selected_ticker_dict, selected_timeframe)
+elif tickers and isinstance(tickers, list):
+    session_state.data = download_data(tickers, selected_timeframe)
 
 if st.button("Download data"):
-    session_state.data = download_data(tickers, selected_timeframe)
     if session_state.data is not None:
         st.dataframe(session_state.data)
-
 
