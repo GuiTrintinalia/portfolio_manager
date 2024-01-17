@@ -362,6 +362,12 @@ for name in selected_dict_names:
 
 tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
 
+selected_ticker_dict = {}
+for key in tickers:
+    if key in combined_dict:
+        selected_ticker_dict[key] = combined_dict[key]
+        session_state.data = download_data(selected_ticker_dict, selected_timeframe)
+
 type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
