@@ -62,6 +62,7 @@ def download_data(data, period):
     if isinstance(data, dict):
         # If input is a dictionary, assume keys are names and values are tickers
         for name, ticker in data.items():
+            st.write(ticker)
             ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
             hist.columns = [f"{name}_{col}" for col in hist.columns]  # Add prefix to the name
