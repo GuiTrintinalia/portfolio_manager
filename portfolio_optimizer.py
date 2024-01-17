@@ -352,12 +352,13 @@ assets_list = {'currencies': currencies_dict, 'crypto': crypto_dict, 'b3_stocks'
 
 # Create a multiselect to choose which dictionaries to combine
 selected_dict_names = st.multiselect('Select dictionaries to combine', list(assets_list.keys()))
-# Combine dictionaries based on selected tickers
+# Combine selected dictionaries
 combined_dict = {}
-for dictionary in assets_list:
-    for ticker, value in dictionary.items():
-        if ticker in selected_tickers:
-            combined_dict[ticker] = value
+for name in selected_dict_names:
+    dictionary = assets_list.get(name)
+    if dictionary:
+        combined_dict.update(dictionary)
+
 
 tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
 
