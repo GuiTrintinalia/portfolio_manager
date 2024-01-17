@@ -348,22 +348,20 @@ sp500_dict = {
                 'INTERNATIONAL TELECOMMUNICATION UNION': 'ITU', 'INTERNET INCOME SOURCE': 'IIS',
                 'INTERPUBLIC GROUP OF COMPANIES INC.': 'IPG', 'INTUIT INC.': 'INTU', 'INTUITIVE SURGICAL INC.': 'ISRG'}
 
-ssets_dict = {**currencies_dict, **crypto_dict, **b3_stocks, **sp500_dict, **indexes_dict}
+assets_list = [currencies_dict, crypto_dict, b3_stocks, sp500_dict, indexes_dict]
+selected_dicts = st.multiselect('Select dictionaries to combine', [d.__name__ for d in assets_list])
 
-# Step 1: Select the dictionary types
-selected_dict_keys = st.multiselect('Select the asset types', list(assets_dict.keys()))
-st.write(selected_dict_keys)
-
-selected_dict_key = st.selectbox('Select the asset type', list(assets_dict.keys()))
-if selected_dict_key:
-    selected_dict = assets_dict[selected_dict_key]
-    selected_assets = st.multiselect(f'Select {selected_dict_key} assets', list(selected_dict.keys()))
-    selected_assets_info = {key: selected_dict[key] for key in selected_assets}
-    tickers_list = st.multiselect('Available Tickers:', list(selected_assets_info.keys()))
-
+if selected_dicts:
+combined_dict = {}
+    for dictionary in assets_list:
+        if dictionary.__name__ in selected_dicts:
+            combined_dict.update(dictionary)
+    tickers = st.multiselect('Assets Selection', list(combined_dict.keys()))
+       
 type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers:    
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
+
 selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
 
 if st.button("Download data"):
