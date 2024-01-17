@@ -351,7 +351,7 @@ sp500_dict = {
 assets_list = [currencies_dict, crypto_dict, b3_stocks, sp500_dict, indexes_dict]
 
 # Create a multiselect to choose which tickers to include
-selected_tickers = st.multiselect('Select tickers', [ticker for dictionary in assets_list for ticker in dictionary.keys()])
+selected_dict_names = st.multiselect('Select dictionaries to combine', [d.__name__ for d in assets_list])
 
 # Combine dictionaries based on selected tickers
 combined_dict = {}
