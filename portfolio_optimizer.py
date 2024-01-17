@@ -372,30 +372,22 @@ for name in selected_dict_names:
     dictionary = assets_list.get(name)
     if dictionary:
         combined_dict.update(dictionary)
-
-# Select tickers from multiselect
-tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
-
+    
+    tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
+    selected_ticker_dict = {}
+    if tickers and download_data:
+        for key in tickers:
+            if key in combined_dict:
+                selected_ticker_dict[key] = combined_dict[key]
+        session_state.data = download_data(selected_ticker_dict, selected_timeframe)
+ 
 # Handle tickers entered manually
 type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers:
-    list_tickers = [ticker.strip() for ticker in type_tickers.split(',')]
+    tickers = [ticker.strip() for ticker in type_tickers.split(',')]
+    session_state.data = download_data(tickers, selected_timeframe)
     
-
-selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
-
-# Determine the type of tickers (dictionary or list) and use the appropriate function
-if tickers:
-    selected_ticker_dict = {}
-    for key in tickers:
-        if key in combined_dict:
-            selected_ticker_dict[key] = combined_dict[key]
-    session_state.data = download_data(selected_ticker_dict, selected_timeframe)
-elif 
-    session_state.data = download_data(list_tickers, selected_timeframe)
-    #session_state.data = map_columns_and_rename(session_state.data, assets_list)
-
-if st.button("Download data"):
-    if session_state.data is not None:
-        st.dataframe(session_state.data)
+download_data =  st.button("Download data")
+if session_state.data is not None:
+    st.dataframe(session_state.data)
 
