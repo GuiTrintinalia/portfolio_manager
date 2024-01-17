@@ -76,7 +76,7 @@ def download_data(data, period):
         raise ValueError("Input data must be either a dictionary or a list of tickers.")
 
     df = pd.concat(dfs, axis=1)  # Concatenate along the date index
-    return df, name_df_mapping
+    return df
     
 def load_data_from_github(url):
     response = requests.get(url)
