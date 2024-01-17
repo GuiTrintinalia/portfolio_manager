@@ -350,25 +350,27 @@ sp500_dict = {
 
 assets_list = [currencies_dict, crypto_dict, b3_stocks, sp500_dict, indexes_dict]
 
-# Create a multiselect to choose which dictionaries to combine
-selected_dict_names = st.multiselect('Select dictionaries to combine', [d.__name__ for d in assets_list])
+# Create a multiselect to choose which tickers to include
+selected_tickers = st.multiselect('Select tickers', [ticker for dictionary in assets_list for ticker in dictionary.keys()])
 
-# Combine selected dictionaries
+# Combine dictionaries based on selected tickers
 combined_dict = {}
-for name, dictionary in zip(selected_dict_names, assets_list):
-    if name in selected_dict_names:
-        combined_dict.update(dictionary)
+for dictionary in assets_list:
+    for ticker, value in dictionary.items():
+        if ticker in selected_tickers:
+            combined_dict[ticker] = value
+
+tickers = st.multiselect('Asset Selection', list(combined_dict.keys()))
 
 type_tickers = st.text_input('Enter Tickers (comma-separated):')
-if type_tickers:    
+if type_tickers:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
 
 selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
 
 if st.button("Download data"):
-    session_state.data = donwload_data(tickers, selected_timeframe)
+    session_state.data = download_data(tickers, selected_timeframe)
     if session_state.data is not None:
         st.dataframe(session_state.data)
-
 
 
