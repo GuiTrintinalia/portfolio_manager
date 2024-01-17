@@ -94,7 +94,9 @@ st.subheader('Crie sua carteira',divider='rainbow')
 type_tickers = st.text_input('Digite os tickers separados por vírgula (por exemplo, AAPL, MSFT):')
 
 url = 'https://github.com/GuiTrintinalia/portfolio_manager/raw/main/tickers.pkl'
-session_state.ticker_list = load_data_from_github(url)
+
+if st.button('Load Tickers'):
+    session_state.ticker_list = load_data_from_github(url)
 
 if session_state.ticker_list is not None:
     # Extract values from the dictionary and create a multiselect dropdown
