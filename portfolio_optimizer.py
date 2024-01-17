@@ -58,6 +58,7 @@ def candlestick_chart(dfs, selected_var):
 
 def download_data(data, period):
     dfs = []
+    name_df_mapping = {}
 
     if isinstance(data, dict):
         # If input is a dictionary, assume keys are names and values are tickers
@@ -66,7 +67,8 @@ def download_data(data, period):
             st.write(name)
             ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
-            hist.columns = [f"{name}_{col}" for col in hist.columns]  # Add prefix to the name
+            hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Add prefix to the name
+            name_df_mapping[name] = hist  # Map the name to the DataFrame
             dfs.append(hist)
     elif isinstance(data, list):
         # If input is a list, assume tickers directly without names
@@ -79,7 +81,7 @@ def download_data(data, period):
         raise ValueError("Input data must be either a dictionary or a list of tickers.")
 
     df = pd.concat(dfs, axis=1)  # Concatenate along the date index
-    return df
+    return df, name_df_mapping
     
 def load_data_from_github(url):
     response = requests.get(url)
