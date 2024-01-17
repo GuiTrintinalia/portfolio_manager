@@ -68,32 +68,17 @@ def donwload_data(tickers, period):
     return df
 
 
-def read_parquet_file():
-    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.parquet'
+def read_text_file():
+    github_raw_url = 'https://raw.githubusercontent.com/GuiTrintinalia/portfolio_manager/main/tickers.txt'
     response = requests.get(github_raw_url)
-    buffer = io.BytesIO(response.content)
 
-    # Tente ler diretamente usando pyarrow
-    try:
-        table = pq.read_table(buffer)
-        df = table.to_pandas()
-        st.write('Tamanho total: ', df.shape)
-        return df
-    except Exception as e:
-        st.error(f"Erro ao ler arquivo Parquet: {e}")
-        return None
-    
-    # Verificar se a requisição foi bem-sucedida
-    if response.status_code != 200:
-        st.error(f"Failed to retrieve file. Status code: {response.status_code}")
-        return None
-    
-    # Tente decodificar o conteúdo como JSON
-    try:
-        return json.loads(response.text)
-    except json.JSONDecodeError as e:
-        st.error(f"Error decoding JSON content: {e}")
-        return None
+    if response.status_code == 200:
+        text_content = response.text
+        st.write('Conteúdo do arquivo:')
+        st.code(text_content)
+    else:
+        st.error(f"Erro ao obter o arquivo. Status Code: {response.status_code}")
+
 
 ## Configuração da página e do título
 st.set_page_config(page_title='Wallet Balancer', layout = 'wide', initial_sidebar_state = 'auto')
