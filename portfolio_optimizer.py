@@ -362,11 +362,8 @@ sp500_dict = {
                 'INTERPUBLIC GROUP OF COMPANIES INC.': 'IPG', 'INTUIT INC.': 'INTU', 'INTUITIVE SURGICAL INC.': 'ISRG'}
 
 assets_list = {'currencies': currencies_dict, 'crypto': crypto_dict, 'b3_stocks': b3_stocks, 'sp500': sp500_dict, 'indexes': indexes_dict}
-
-# Create a multiselect to choose which dictionaries to combine
 selected_dict_names = st.multiselect('Select dictionaries to combine', list(assets_list.keys()))
-
-# Combine selected dictionaries
+selected_timeframes = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
 combined_dict = {}
 for name in selected_dict_names:
     dictionary = assets_list.get(name)
