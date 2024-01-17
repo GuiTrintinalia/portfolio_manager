@@ -186,7 +186,7 @@ b3_stocks =         {
                     }
 
 indexes_dict =     {
-                    S&P GSCI': 'GD=F', 'IBOVESPA': '^BVSP', 'S&P/CLX IPSA': '^IPSA',
+                    'S&P GSCI': 'GD=F', 'IBOVESPA': '^BVSP', 'S&P/CLX IPSA': '^IPSA',
                     'MERVAL': '^MERV', 'IPC MEXICO': '^MXX', 'S&P 500': '^GSPC',
                     'Dow Jones Industrial Average': '^DJI', 'NASDAQ Composite': '^IXIC',
                     'NYSE COMPOSITE (DJ)': '^NYA', 'NYSE AMEX COMPOSITE INDEX': '^XAX',
