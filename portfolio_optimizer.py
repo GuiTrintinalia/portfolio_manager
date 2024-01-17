@@ -349,7 +349,7 @@ sp500_dict = {
                 'INTERPUBLIC GROUP OF COMPANIES INC.': 'IPG', 'INTUIT INC.': 'INTU', 'INTUITIVE SURGICAL INC.': 'ISRG'}
 
 assets_list = [currencies_dict, crypto_dict, b3_stocks, sp500_dict, indexes_dict]
-selected_dicts = st.multiselect('Select dictionaries to combine', [d.__name__ for d in assets_list])
+selected_dicts = st.multiselect('Select dictionaries to combine', [d['name'] for d in assets_list])
 
 if selected_dicts:
     combined_dict = {}
