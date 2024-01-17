@@ -348,7 +348,7 @@ sp500_dict = {
                 'INTERNATIONAL TELECOMMUNICATION UNION': 'ITU', 'INTERNET INCOME SOURCE': 'IIS',
                 'INTERPUBLIC GROUP OF COMPANIES INC.': 'IPG', 'INTUIT INC.': 'INTU', 'INTUITIVE SURGICAL INC.': 'ISRG'}
 
-assets_dict =  {**currencies_dict, **crypto_dict, **stocks_dict, **sp500_dict, **indexes_dict}
+assets_dict =  {**currencies_dict, **crypto_dict, **b3_stocks, **sp500_dict, **indexes_dict}
 
 selected_dict_key = st.selectbox('Select the asset type', list(assets_dict.keys()))
 if selected_dict_key:
