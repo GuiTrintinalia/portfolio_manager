@@ -372,8 +372,7 @@ for key in tickers:
 type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers:
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
-
-selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
+    selected_timeframe = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'])
 
 if st.button("Download data"):
     session_state.data = download_data(tickers, selected_timeframe)
