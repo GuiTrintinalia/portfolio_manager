@@ -401,7 +401,7 @@ frequency = {
         'Semiannual': '6M',
         'Annual': 'A'
     }	
-st.sidebar.markdown('Time Series Resampler')
+st.sidebar.markdown('**Time Series Resampler**')
 freq = st.sidebar.selectbox("Freq to resample:", list(frequency.keys()))
 agg = st.sidebar.selectbox("Selecione a função de agregação:", ['sum', 'mean', 'median', 'valor_exato'])
 resample = st.sidebar.button("Resample dataframe")
