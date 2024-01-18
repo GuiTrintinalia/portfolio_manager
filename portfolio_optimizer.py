@@ -63,7 +63,7 @@ def download_data(data, period='1y'):
             ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
             hist.columns = [f"{name}_{col}" for col in hist.columns]  # Add prefix to the name
-            hist.index = pd.to_datetime(hist.index)
+	    hist.index = hist.index.apply(lambda x: x.strftime('%Y-%m-%d')).pd.to_datetime()
             dfs.append(hist)
     elif isinstance(data, list):
         # If input is a list, assume tickers directly without names
@@ -71,20 +71,12 @@ def download_data(data, period='1y'):
             ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
             hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Add prefix to the name
-            hist.index = pd.to_datetime(hist.index)
+            hist.index = hist.index.apply(lambda x: x.strftime('%Y-%m-%d')).pd.to_datetime()
             dfs.append(hist)
-
-    # Correct indices before concatenation
-    for i in range(len(dfs)):
-        dfs[i] = dfs[i].asfreq('D')  # Resample to daily frequency if needed
-        dfs[i] = dfs[i].sort_index()
-
+    
     # Combine DataFrames
-    if dfs:
-        combined_df = pd.concat(dfs, axis=1, join='outer')  # Use join='outer' to handle different time indices
-        return combined_df
-    else:
-        return None
+    combined_df = pd.concat(dfs, axis=1, join='outer')  # Use join='outer' to handle different time indices
+    return combined_df
 
     
 def load_data_from_github(url):
