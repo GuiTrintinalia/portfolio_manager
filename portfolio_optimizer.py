@@ -95,6 +95,10 @@ def asset_mapping(df, assets_list):
 
     return mapped_df
 
+def date_resample(df, period='M', aggregation='sum'):
+    result_series = df.resample(period).agg(aggregation)
+    return result_series
+
 
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
@@ -385,6 +389,27 @@ if type_tickers and st.button("Download data"):
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
     session_state.data = download_data(tickers, selected_timeframes)
     session_state.data = asset_mapping(session_state.data, assets_list)
-    
+
+ frequency = {
+        'Daily': 'D',
+        'Weekly': 'W',
+        'Quaterly': '2W',
+        'Monthly': 'M',
+        'Bimonthly': '2M',
+        'Quarterly': '3M',
+        'Four-monthly': '4M',
+        'Semiannual': '6M',
+        'Annual': 'A'
+    }	
+freq = st.sidebar.selectbox("Freq to resample:", list(frequency.keys()))
+agg = st.sidebar.selectbox("Selecione a função de agregação:", ['sum', 'mean', 'median', 'valor_exato'])
+resample = st.sidebar.button("Resample dataframe")
+if resample:
+	if session_state.data is not None:
+		session_state.data = date_resample(session_state.data,frequency[freq],agg)
+			
+
+
+
 if session_state.data is not None:
     st.dataframe(session_state.data)
