@@ -390,7 +390,7 @@ if type_tickers and st.button("Download data"):
     session_state.data = download_data(tickers, selected_timeframes)
     session_state.data = asset_mapping(session_state.data, assets_list)
 
- frequency = {
+frequency = {
         'Daily': 'D',
         'Weekly': 'W',
         'Quaterly': '2W',
