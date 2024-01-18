@@ -56,10 +56,8 @@ def candlestick_chart(dfs, selected_var):
     fig = go.Figure(data=traces, layout=layout)
     return fig
 
-
-def download_data(data, period):
+def download_data(data, period='1y'):
     dfs = []
-
     if isinstance(data, dict):
         for name, ticker in data.items():
             ticker_obj = yf.Ticker(ticker)
@@ -73,13 +71,21 @@ def download_data(data, period):
             ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
             hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Add prefix to the name
-            hist.index = pd.to_datetime(hist_index)
+            hist.index = pd.to_datetime(hist.index)
             dfs.append(hist)
-    else:
-        raise ValueError("Input data must be either a dictionary or a list of tickers.")
 
-    df = pd.concat(dfs, axis=1)  # Concatenate along the date index
-    return df
+    # Correct indices before concatenation
+    for i in range(len(dfs)):
+        dfs[i] = dfs[i].asfreq('D')  # Resample to daily frequency if needed
+        dfs[i] = dfs[i].sort_index()
+
+    # Combine DataFrames
+    if dfs:
+        combined_df = pd.concat(dfs, axis=1, join='outer')  # Use join='outer' to handle different time indices
+        return combined_df
+    else:
+        return None
+
     
 def load_data_from_github(url):
     response = requests.get(url)
