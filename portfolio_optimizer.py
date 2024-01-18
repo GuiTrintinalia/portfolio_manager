@@ -85,14 +85,11 @@ def load_data_from_github(url):
     data = pd.read_pickle(content)
     return data
 
-def map_columns_and_rename(df, assets_list):
+def asset_mapping(df, assets_list):
     mapped_df = df.copy()
-
     for name, ticker in assets_list.items():
-        # Check if ticker columns exist in the DataFrame
         ticker_columns = [col for col in df.columns if col.startswith(f"{ticker}_")]
         if ticker_columns:
-            # Map Ticker to Name and rename columns
             mapped_ticker = f"{name}_"
             mapped_df = mapped_df.rename(columns={ticker_col: ticker_col.replace(f"{ticker}_", f"{mapped_ticker}_") for ticker_col in ticker_columns})
 
@@ -387,6 +384,7 @@ type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers and st.button("Download data"):
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
     session_state.data = download_data(tickers, selected_timeframes)
-
+    session_state.data = asset_mapping(session_state.data, assets_list)
+    
 if session_state.data is not None:
     st.dataframe(session_state.data)
