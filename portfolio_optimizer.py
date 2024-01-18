@@ -435,7 +435,7 @@ if resample:
 # moving average for NaN ocurrencies
 st.sidebar.markdown('**Moving Avarage**')
 moving_avg_days =  st.sidebar.number_input('Day(s):',1, 100, 3,step=1)                     
-method = st.sidebar.selectbox('Method:', ['rolling', 'gap'], default = 'gap') 
+method = st.sidebar.selectbox('Method:', ['gap', 'rolling'])
 
 if st.sidebar.button("Apply"):
     if session_state.data is not None:
