@@ -119,7 +119,7 @@ def fill_moving_avg(df, window_size, method='gap'):
 
     st.write(f'NaN count: {df.isna().sum().sum()}')
     st.dataframe(df.isna().sum().to_frame().T)
-
+    return df
 
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
@@ -438,7 +438,7 @@ moving_avg_days =  st.sidebar.number_input('Day(s):',1, 100, 3,step=1)
 method = st.sidebar.selectbox("Method:", ['gap', 'rolling'])
 
 if st.sidebar.button("Apply") and session_state.data is not None:
-	fill_moving_avg(session_state.data, moving_avg_days, method)       
+	session_state.data = fill_moving_avg(session_state.data, moving_avg_days, method)       
 
 if session_state.data is not None:
     st.dataframe(session_state.data)
