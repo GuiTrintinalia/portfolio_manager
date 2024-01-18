@@ -100,7 +100,7 @@ def date_resample(df, period='M', aggregation='sum'):
     return result_series
 
 def fill_moving_avg(df, window_size, method='gap'):
-    if method = 'gap':
+    if method == 'gap':
 	    date_index = df.index
 	    dfs.reset_index(drop=True, inplace=True)
 	    for col in df.select_dtypes(include=[np.number]).columns: 
