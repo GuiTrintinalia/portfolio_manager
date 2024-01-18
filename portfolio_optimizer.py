@@ -114,11 +114,9 @@ def fill_moving_avg(df, window_size, method='gap'):
         df.index = date_index
     else:
         numeric_cols = df.select_dtypes(include='number').columns
-	for col in numeric_cols:
-	    df[col] = df[col].rolling(window=window_size).mean()
-	    df[col] = df[col].fillna(method='bfill')
-
-
+        for col in numeric_cols:
+            df[col] = df[col].rolling(window=window_size, min_periods=1).mean()
+            df[col] = df[col].fillna(method='bfill')
     st.write(f'NaN count: {df.isna().sum().sum()}')
     st.dataframe(df.isna().sum().to_frame().T)
     return df
