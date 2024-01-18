@@ -101,24 +101,25 @@ def date_resample(df, period='M', aggregation='sum'):
 
 def fill_moving_avg(df, window_size, method='gap'):
     if method == 'gap':
-	    date_index = df.index
-	    dfs.reset_index(drop=True, inplace=True)
-	    for col in df.select_dtypes(include=[np.number]).columns: 
-	        nan_indices = dfs[dfs[col].isna()].index 
-	        for index in nan_indices:
-	            start = max(0, index - window_size)  
-	            end = index + 1  
-	            window_data = df[col].iloc[start:end]  
-	            mean_value = round(window_data.mean(), 3) 
-	            df.at[index, col] = mean_value 	
-	    df.index = date_index
+        date_index = df.index
+        df.reset_index(drop=True, inplace=True)
+        for col in df.select_dtypes(include=[np.number]).columns:
+            nan_indices = df[df[col].isna()].index
+            for index in nan_indices:
+                start = max(0, index - window_size)
+                end = index + 1
+                window_data = df[col].iloc[start:end]
+                mean_value = round(window_data.mean(), 3)
+                df.at[index, col] = mean_value
+        df.index = date_index
     else:
-	numeric_cols = df.select_dtypes(include='number').columns
-	for col in numeric_cols:
-    		df[col] = df[col].rolling(window=window_size).mean()
+        numeric_cols = df.select_dtypes(include='number').columns
+        for col in numeric_cols:
+            df[col] = df[col].rolling(window=window_size).mean()
 
-    st.write(f'NaN count: {dfs.isna().sum().sum()}} ')
+    st.write(f'NaN count: {df.isna().sum().sum()}')
     st.dataframe(df.isna().sum().to_frame().T)
+
 
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
@@ -434,11 +435,11 @@ if resample:
 # moving average for NaN ocurrencies
 st.sidebar.markdown('**Moving Avarage**')
 moving_avg_days =  st.sidebar.number_input('Day(s):',1, 100, 3,step=1)                     
-method = st.sidebar.selectbox('Method:', ['Rolling', 'gap'], default = 'gap') 
+method = st.sidebar.selectbox('Method:', ['rolling', 'gap'], default = 'gap') 
 
 if st.sidebar.button("Apply"):
     if session_state.data is not None:
-            fill_moving_avg(session_state.data, moving_avg_days, method =)       
+            fill_moving_avg(session_state.data, moving_avg_days, method)       
 
 
 
