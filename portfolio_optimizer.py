@@ -426,7 +426,7 @@ frequency = {
 # sidebar resampling function
 st.sidebar.markdown('**Time Series Resampler**')
 freq = st.sidebar.selectbox("Freq to resample:", list(frequency.keys()))
-agg = st.sidebar.selectbox("Selecione a função de agregação:", ['sum', 'mean', 'median', 'valor_exato'])
+agg = st.sidebar.selectbox("Aggregation:", ['sum', 'mean', 'median', 'valor_exato'])
 resample = st.sidebar.button("Resample dataframe")
 if resample:
 	if session_state.data is not None:
@@ -435,14 +435,10 @@ if resample:
 # moving average for NaN ocurrencies
 st.sidebar.markdown('**Moving Avarage**')
 moving_avg_days =  st.sidebar.number_input('Day(s):',1, 100, 3,step=1)                     
-method = st.sidebar.selectbox('Method:', ['gap', 'rolling'])
+method = st.sidebar.selectbox("Method:", ['gap', 'rolling'])
 
-if st.sidebar.button("Apply"):
-    if session_state.data is not None:
-            fill_moving_avg(session_state.data, moving_avg_days, method)       
-
-
-
+if st.sidebar.button("Apply") and session_state.data is not None:
+	fill_moving_avg(session_state.data, moving_avg_days, method)       
 
 if session_state.data is not None:
     st.dataframe(session_state.data)
