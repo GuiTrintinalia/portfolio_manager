@@ -394,9 +394,18 @@ if st.sidebar.button("Apply") and session_state.data is not None:
 
 if session_state.data is not None:
     st.dataframe(session_state.data)
-    
-st.subheader('Assets allocation',divider='rainbow')
-for ticker in tickers:
-    st.text_input(f'Share: {ticker} ')
+
+st.subheader('Assets allocation', divider='rainbow')
+
+shares_total = []
+invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=float('inf'), step=0.01, format="%.2f")
+available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=float('inf'), step=0.01, format="%.2f")
+if tickers is not None:
+    for ticker in tickers:
+        share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+        shares_total.append(share)
+        allocated_cash = share * invested_cash
+        available_cash -= allocated_cash
+
 
         
