@@ -397,15 +397,20 @@ if session_state.data is not None:
 
 st.subheader('Assets allocation', divider='rainbow')
 
-shares_total = []
-invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=0.01, format="%.2f")
-available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=0.01, format="%.2f")
+total_shares = []
+available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=1000.0, format="%.2f")
+invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, format="%.2f")
 if tickers is not None:
     for ticker in tickers:
         share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
-        shares_total.append(share)
+        total_shares.append(share)
+        shares_to_allocate = 1 - sum(total_shares)
         allocated_cash = share * invested_cash
         available_cash -= allocated_cash
+    if shares_to_allocate <=1:
+        st.write(f'You must allocate another {shares_to_allocate} in assets!',format="%.2f")
+    else:
+        st.write(f'Max Allocation exceded Pleases reshare {1+shares_to_allocate}',format="%.2f")
 
 
         
