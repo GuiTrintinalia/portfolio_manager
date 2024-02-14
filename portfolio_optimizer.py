@@ -394,3 +394,9 @@ if st.sidebar.button("Apply") and session_state.data is not None:
 
 if session_state.data is not None:
     st.dataframe(session_state.data)
+    
+st.subheader('Assets allocation',divider='rainbow')
+for ticker in tickers:
+    st.text_input(f'Share: {ticker} ')
+
+        
