@@ -398,8 +398,8 @@ if session_state.data is not None:
 st.subheader('Assets allocation', divider='rainbow')
 
 shares_total = []
-invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=float('inf'), step=0.01, format="%.2f")
-available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=float('inf'), step=0.01, format="%.2f")
+invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=0.01, format="%.2f")
+available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=0.01, format="%.2f")
 if tickers is not None:
     for ticker in tickers:
         share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
