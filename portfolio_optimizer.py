@@ -121,6 +121,38 @@ def fill_moving_avg(df, window_size, method='gap'):
     st.dataframe(df.isna().sum().to_frame().T)
     return df
 
+def get_latest_values(df, tickers):
+    latest_values = {}
+    for ticker in tickers:
+
+        latest_index = df[f"{ticker}_Close"].idxmax()
+
+        latest_value = df.at[latest_index, f"{ticker}_Close"]
+
+        latest_values[ticker] = latest_value
+    
+    return latest_values
+
+def compute_investments(df, tickers, total_shares, available_cash):
+    latest_values = get_latest_values(df, tickers)
+    investments = pd.DataFrame(columns=['Ticker', 'Price', 'Papers', 'Share %', 'Invested', 'Cash'])
+
+    cash_to_invest = available_cash  # Initialize cash_to_invest
+
+    for i, ticker in enumerate(tickers):
+        share = total_shares[i]
+        price = latest_values[ticker]
+        invested = (share * available_cash)
+        papers = invested / price
+        cash_to_invest -= invested  # Subtract the invested amount for each iteration
+
+        row_data = {'Ticker': ticker, 'Price': price, 'Invested': invested, 
+                    'Share %': share*100, 'Papers': papers, 'Cash': round(cash_to_invest, 2)}
+        investments = pd.concat([investments, pd.DataFrame([row_data])], ignore_index=True)
+
+    return investments[['Ticker', 'Price', 'Papers', 'Share %', 'Invested', 'Cash']]
+
+
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Portfolio Balancer")
@@ -133,7 +165,7 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(df=None, data=pd.DataFrame())
+    return SessionState(df=pd.DataFrame(), data=pd.DataFrame())
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
@@ -402,15 +434,21 @@ available_cash = st.number_input("Enter available cash", min_value=0.0, max_valu
 invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, format="%.2f")
 if tickers is not None:
     for ticker in tickers:
-        share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+        share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.1, format="%.2f")
         total_shares.append(share)
-        shares_to_allocate = 1 - sum(total_shares)
-        allocated_cash = share * invested_cash
-        available_cash -= allocated_cash
-    if shares_to_allocate <=1:
-        st.write(f'You must allocate another {shares_to_allocate} in assets!',format="%.2f")
-    else:
-        st.write(f'Max Allocation exceded Pleases reshare {1+shares_to_allocate}',format="%.2f")
-
-
+        allocated_shares =  sum(total_shares)
+        shares_to_allocate = 1 - allocated_shares
         
+    if allocated_shares == 1:
+        st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
+        session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
+        
+    elif 0.0 < allocated_shares < 1.0:
+        st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
+        
+    else:
+        st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
+
+if tickers is not None:
+    session_state.df = compute_investments(session_state.data,tickers,total_shares,available_cash)
+    st.dataframe(session_state.df)
