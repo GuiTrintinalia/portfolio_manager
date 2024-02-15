@@ -432,23 +432,27 @@ st.subheader('Assets allocation', divider='rainbow')
 total_shares = []
 available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=1000.0, format="%.2f")
 invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, format="%.2f")
-if tickers is not None:
-    for ticker in tickers:
-        share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.1, format="%.2f")
-        total_shares.append(share)
-        allocated_shares =  sum(total_shares)
-        shares_to_allocate = 1 - allocated_shares
-        
-    if allocated_shares == 1:
-        st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-        session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
-        
-    elif 0.0 < allocated_shares < 1.0:
-        st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
-        
-    else:
-        st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
 
-if tickers is not None:
-    session_state.df = compute_investments(session_state.data,tickers,total_shares,available_cash)
-    st.dataframe(session_state.df)
+if session_state.data is not None:
+    try:
+        if 'tickers' in globals() and tickers is not None:
+            for ticker in tickers:
+                share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.1, format="%.2f")
+                total_shares.append(share)
+                allocated_shares =  sum(total_shares)
+                shares_to_allocate = 1 - allocated_shares
+                
+                if allocated_shares == 1:
+                    st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
+                    session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
+                    
+                elif 0.0 < allocated_shares < 1.0:
+                    st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
+            
+                else:
+                    st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
+    except NameError:
+        st.write("Please download tickers before continuing.")
+        
+if session_state.df is not None:
+   st.dataframe(session_state.df) 
