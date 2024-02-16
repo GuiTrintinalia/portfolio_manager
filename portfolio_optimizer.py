@@ -21,6 +21,13 @@ from io import BytesIO
 import pyarrow.parquet as pq
 
 
+from pypfopt import EfficientFrontier
+from pypfopt import risk_models
+from pypfopt import expected_returns
+from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
+
+
+
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
     candles = []
@@ -152,7 +159,6 @@ def compute_investments(df, tickers, total_shares, available_cash):
 
     return investments[['Ticker', 'Price', 'Papers', 'Share %', 'Invested', 'Cash']]
 
-
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Portfolio Balancer")
@@ -165,7 +171,7 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(df=pd.DataFrame(), data=pd.DataFrame())
+    return SessionState(df=pd.DataFrame(), data=pd.DataFrame(), portfolio=pd.DataFrame())
 session_state = get_session()
 
 st.subheader('Crie sua carteira',divider='rainbow')
@@ -426,6 +432,7 @@ if st.sidebar.button("Apply") and session_state.data is not None:
 
 if session_state.data is not None:
     st.dataframe(session_state.data)
+    
 
 st.subheader('Assets allocation', divider='rainbow')
 
@@ -455,4 +462,25 @@ if session_state.data is not None:
         st.write("Please download tickers before continuing.")
         
 if session_state.df is not None:
-   st.dataframe(session_state.df) 
+   st.dataframe(session_state.df)
+   st.subheader('Optimization', divider='rainbow')
+   close_price_data = [col for col  in session_state.data.columns if col.endswith('_Close')]
+   session_state.portfolio  = session_state.data[close_price_data]
+   #st.dataframe(session_state.portfolio)
+   upper_bound = st.number_input(f'Select upper limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
+   lower_bound = st.number_input(f'Select lower limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
+   run = st.button('Optimize')
+   if lower_bound < upper_bound and run:
+        c1, c2 = st.columns(2)
+        with c1:
+            mu = expected_returns.mean_historical_return(session_state.portfolio)
+            st.markdown('**Expected Returns**')
+            st.dataframe(mu)
+        with c2:
+            S = risk_models.sample_cov(session_state.portfolio)
+            ef = EfficientFrontier(mu, S, weight_bounds=(lower_bound, upper_bound))
+            raw_weights = ef.max_sharpe()
+            st.markdown('**Shares**')
+            cleaned_weights = ef.clean_weights()
+            st.dataframe(cleaned_weights)
+            
