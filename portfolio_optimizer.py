@@ -449,20 +449,19 @@ if session_state.data is not None:
                 allocated_shares =  sum(total_shares)
                 shares_to_allocate = 1 - allocated_shares
                 
-                if allocated_shares == 1:
-                    st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-                    session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
+            if allocated_shares == 1:
+                st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
+                session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
                     
-                elif 0.0 < allocated_shares < 1.0:
-                    st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
+            elif 0.0 < allocated_shares < 1.0:
+                st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
             
-                else:
-                    st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
+            else:
+                st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
     except NameError:
         st.write("Please download tickers before continuing.")
         
         
-                
 if session_state.df is not None:
    st.dataframe(session_state.df)
    st.subheader('Optimization', divider='rainbow')
@@ -470,20 +469,16 @@ if session_state.df is not None:
    session_state.portfolio  = session_state.data[close_price_data]
    
 def plot_cumulative_returns(df):
-    daily_returns = df.iloc[:, 1:].pct_change()
+    daily_returns = df.iloc[:, 0:].pct_change()
     cumulative_returns = (1 + daily_returns).cumprod()
+    st.dataframe(cumulative_returns)
 
 
-    fig, ax = plt.subplots()
-    for column in cumulative_returns.columns:
-        ax.plot(cumulative_returns.index, cumulative_returns[column], label=column)
-    ax.set_title('Cumulative Returns'
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Cumulative Returns')
-
-    ax.legend('Cumulative returns for the choosen Portfolio'kwargs=)
-    st.pyplot(fig)
-
+    fig = px.line(cumulative_returns, x=cumulative_returns.index, y=cumulative_returns.columns,
+                  labels={'value': 'Cumulative Returns', 'index': 'Date'},
+                  title='Cumulative Returns')
+    fig.update_layout(legend_title_text='Cumulative returns for the chosen Portfolio')
+    st.plotly_chart(fig)
     return cumulative_returns
 
 
