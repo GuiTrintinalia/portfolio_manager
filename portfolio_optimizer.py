@@ -461,26 +461,63 @@ if session_state.data is not None:
     except NameError:
         st.write("Please download tickers before continuing.")
         
+        
+                
 if session_state.df is not None:
    st.dataframe(session_state.df)
    st.subheader('Optimization', divider='rainbow')
    close_price_data = [col for col  in session_state.data.columns if col.endswith('_Close')]
    session_state.portfolio  = session_state.data[close_price_data]
-   #st.dataframe(session_state.portfolio)
-   upper_bound = st.number_input(f'Select upper limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
-   lower_bound = st.number_input(f'Select lower limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
-   run = st.button('Optimize')
-   if lower_bound < upper_bound and run:
-        c1, c2 = st.columns(2)
-        with c1:
-            mu = expected_returns.mean_historical_return(session_state.portfolio)
-            st.markdown('**Expected Returns**')
-            st.dataframe(mu)
-        with c2:
-            S = risk_models.sample_cov(session_state.portfolio)
-            ef = EfficientFrontier(mu, S, weight_bounds=(lower_bound, upper_bound))
-            raw_weights = ef.max_sharpe()
-            st.markdown('**Shares**')
-            cleaned_weights = ef.clean_weights()
-            st.dataframe(cleaned_weights)
+   
+def plot_cumulative_returns(df):
+    daily_returns = df.iloc[:, 1:].pct_change()
+    cumulative_returns = (1 + daily_returns).cumprod()
+
+
+    fig, ax = plt.subplots()
+    for column in cumulative_returns.columns:
+        ax.plot(cumulative_returns.index, cumulative_returns[column], label=column)
+    ax.set_title('Cumulative Returns'
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Cumulative Returns')
+
+    ax.legend('Cumulative returns for the choosen Portfolio'kwargs=)
+    st.pyplot(fig)
+
+    return cumulative_returns
+
+
+
+cumulative_returns = plot_cumulative_returns(session_state.portfolio)
+
+
+
+
+
+#    #st.dataframe(session_state.portfolio)
+#    upper_bound = st.number_input(f'Select upper limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
+#    lower_bound = st.number_input(f'Select lower limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
+#    run = st.button('Optimize')
+#    if lower_bound < upper_bound and run:
+#         c1, c2 = st.columns(2)
+#         with c1:
+#             #mu = expected_returns.mean_historical_return(session_state.portfolio)
+            
+            
+            
+            
+            
+            
+        #     st.markdown('**Expected Returns**')
+        #     st.dataframe(mu)
+        # with c2:
+        #     #S = risk_models.sample_cov(session_state.portfolio)
+        #     #ef = EfficientFrontier(mu, S, weight_bounds=(lower_bound, upper_bound))
+        #     #raw_weights = ef.max_sharpe()
+            
+            
+            
+        #     st.markdown('**Shares**')
+        #     #cleaned_weights = ef.clean_weights()
+        #     st.dataframe(cleaned_weights)
             
