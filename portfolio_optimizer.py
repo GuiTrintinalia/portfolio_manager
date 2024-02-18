@@ -482,8 +482,8 @@ def plot_cumulative_returns(df):
     return cumulative_returns
 
 
-
-cumulative_returns = plot_cumulative_returns(session_state.portfolio)
+if session_state.portfolio is not None:
+    cumulative_returns = plot_cumulative_returns(session_state.portfolio)
 
 
 
