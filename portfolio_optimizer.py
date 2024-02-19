@@ -569,11 +569,9 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
                               mode='markers',
                               marker=dict(color='green', size=10),
                               name='Max Sharpe Ratio'))
+    st.plotly_chart(frontier)
 
-# Display the chart
-st.plotly_chart(frontier)
-
-st.write('thanks')
+    st.write('thanks')
 
 #    #st.dataframe(session_state.portfolio)
 #    upper_bound = st.number_input(f'Select upper limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
