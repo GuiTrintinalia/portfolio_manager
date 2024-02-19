@@ -21,12 +21,10 @@ from io import BytesIO
 import pyarrow.parquet as pq
 
 
-from pypfopt import EfficientFrontier
-from pypfopt import risk_models
-from pypfopt import expected_returns
-from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
-
-
+# from pypfopt import EfficientFrontier
+# from pypfopt import risk_models
+# from pypfopt import expected_returns
+# from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
 
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
@@ -575,7 +573,7 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
 # Display the chart
 st.plotly_chart(frontier)
 
-
+st.write('thanks')
 
 #    #st.dataframe(session_state.portfolio)
 #    upper_bound = st.number_input(f'Select upper limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
