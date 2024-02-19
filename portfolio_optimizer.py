@@ -114,7 +114,7 @@ def fill_moving_avg(df, window_size, method='gap'):
                 start = max(0, index - window_size)
                 end = index + 1
                 window_data = df[col].iloc[start:end]
-                mean_value = round(window_data.mean(), 3)
+                mean_value = round(window_data.mean(), 4)
                 df.at[index, col] = mean_value
         df.index = date_index
     else:
@@ -172,7 +172,28 @@ def get_session():
     return SessionState(df=pd.DataFrame(), data=pd.DataFrame(), portfolio=pd.DataFrame())
 session_state = get_session()
 
-st.subheader('Crie sua carteira',divider='rainbow')
+st.subheader('Pick your assets',divider='rainbow')
+
+
+with st.expander("See explanation"):
+    st.markdown("""
+        1. You can combine assets from currencies, crypto, commodities, Nasdaq, S&P500, B3, and Indexes.
+        
+        2. Once you have selected one or more dictionaries, you will be able to choose tickers to download.
+        
+        3. You must press the download button to retrieve the data.
+        
+        4. It downloads data from Yahoo Finance, yet there may be tickers which return None or fragmented data.
+        
+        5. Use the resample and rolling average functions to prepare your data for optimization.
+        
+        6. If you prefer, download data with the first and last index for all tickers. However, this option may reduce the length of your resulting dataframe. It is optional to remove NaNs without any further data filling techniques.
+        
+        7. Additionally, you have the ability to:
+            - Download your data as a CSV or Excel file for further analysis.
+            - Upload your own portfolio data for educational purposes, allowing you to experiment with different optimization strategies.
+    """)
+
 
 currencies_dict  =  {'USD/JPY': 'USDJPY=X', 'USD/BRL': 'BRL=X', 'USD/ARS': 'ARS=X', 'USD/PYG': 'PYG=X', 'USD/UYU': 'UYU=X',
                      'USD/CNY': 'CNY=X', 'USD/KRW': 'KRW=X', 'USD/MXN': 'MXN=X', 'USD/IDR': 'IDR=X', 'USD/EUR': 'EUR=X',
@@ -434,9 +455,32 @@ if session_state.data is not None:
 
 st.subheader('Assets allocation', divider='rainbow')
 
+with st.expander("**See explanation**"):
+    st.markdown("""
+        <div style="text-align: justify">
+        
+        1. You can combine assets from currencies, crypto, commodities, Nasdaq, S&P500, B3, and Indexes.<br><br>
+        
+        2. Once you have selected one or more dictionaries, you will be able to choose tickers to download.<br><br>
+        
+        3. You must press the download button to retrieve the data.<br><br>
+        
+        4. It downloads data from Yahoo Finance, yet there may be tickers which return None or fragmented data.<br><br>
+        
+        5. Use the resample and rolling average functions to prepare your data for optimization.<br><br>
+        
+        6. If you prefer, download data with the first and last index for all tickers. However, this option may reduce the length of your resulting dataframe. It is optional to remove NaNs without any further data filling techniques.<br><br>
+        
+        7. Additionally, you have the ability to:<br>
+           - Download your data as a CSV or Excel file for further analysis.<br>
+           - Upload your own portfolio data for educational purposes, allowing you to experiment with different optimization strategies.
+        </div>
+    """, unsafe_allow_html=True)
+
 total_shares = []
-available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=1000.0, format="%.2f")
-invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, format="%.2f")
+
+available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
+invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
 
 if session_state.data is not None:
     try:
@@ -539,8 +583,7 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     
     simulated_portfolios  = pd.DataFrame(data)
     simulated_portfolios = simulated_portfolios.round(3)
-    st.dataframe(simulated_portfolios)
-    
+
     
     for index, row in simulated_portfolios.iterrows():
         concatenated_values = ''
