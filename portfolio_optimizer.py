@@ -234,10 +234,10 @@ b3_stocks =         {
                     "ALLIAR": "AALR3.SA", "ALPER": "APER3.SA", "ALPHABET": "GOGL35.SA", "ALUPAR INVESTIMENTO": "ALUP4.SA",
                     "AMC ENTERT H": "A2MC34.SA", "AMERICAN EXPRESS": "AXPB34.SA", "APPLE": "AAPL34.SA", "ARCELOR": "ARMT34.SA",
                     "ATT INC": "ATTB34.SA", "AUREN ENERGIA": "AURE3.SA", "AVALARA INC": "A2VL34.SA", "AVON": "AVON34.SA",
-                    "BANCO DO BRASIL": "BBAS11.SA", "BANCO INTER": "BIDI3.SA", "BANCO MERCANTIL DE INVESTIMENTOS": "BMIN3.SA",
+                    "BANCO DO BRASIL": "BBAS3.SA", "BANCO INTER": "BIDI3.SA", "BANCO MERCANTIL DE INVESTIMENTOS": "BMIN3.SA",
                     "BANCO PAN": "BPAN4.SA", "BANK AMERICA": "BOAC34.SA", "BANPARA": "BPAR3.SA", "BANRISUL": "BRSR3.SA",
                     "BATTISTELLA": "BTTL3.SA", "BAUMER": "BALM3.SA", "BB SEGURIDADE": "BBSE3.SA", "BEYOND MEAT": "B2YN34.SA",
-                    "BIOMM": "BIOM3.SA", "BIOTOSCANA": "GBIO33.SA", "BMG": "BMGB11.SA", "BRASIL BROKERS": "BBRK3.SA",
+                    "BIOMM": "BIOM3.SA", "BIOTOSCANA": "GBIO33.SA", "BMG": "BMGB4.SA", "BRASIL BROKERS": "BBRK3.SA",
                     "BRMALLS": "BRML3.SA", "BTG S&P 500 CI": "SPXB11.SA", "BTG SMLL CAPCI": "SMAB11.SA", "CAESARS ENTT": "C2ZR34.SA",
                     "CAIXA AGÊNCIAS": "CXAG11.SA", "CAMDEN PROP": "C2PT34.SA", "CAMIL": "CAML3.SA", "CARREFOUR": "CRFB3.SA",
                     "CARTESIA FIICI": "CACR11.SA", "CASAN": "CASN4.SA", "CEB": "CEBR6.SA", "CEEE-D": "CEED4.SA",
@@ -468,24 +468,112 @@ if session_state.df is not None:
    close_price_data = [col for col  in session_state.data.columns if col.endswith('_Close')]
    session_state.portfolio  = session_state.data[close_price_data]
    
-def plot_cumulative_returns(df):
-    daily_returns = df.iloc[:, 0:].pct_change()
-    cumulative_returns = (1 + daily_returns).cumprod()
-    st.dataframe(cumulative_returns)
-
-
-    fig = px.line(cumulative_returns, x=cumulative_returns.index, y=cumulative_returns.columns,
-                  labels={'value': 'Cumulative Returns', 'index': 'Date'},
-                  title='Cumulative Returns')
-    fig.update_layout(legend_title_text='Cumulative returns for the chosen Portfolio')
+   
+def logreturns(df):
+    log_returns  = np.log(df)
+    log_returns = df.iloc[:, 0:].pct_change()
+    fig = px.line(log_returns, x=log_returns.index, y=log_returns.columns[0:],
+                  labels={'value': 'ln'},
+                  title='Ln Returns')
+    fig.update_layout(legend_title_text='Assets')
     st.plotly_chart(fig)
-    return cumulative_returns
+
+    return log_returns
 
 
-if session_state.portfolio is not None:
-    cumulative_returns = plot_cumulative_returns(session_state.portfolio)
+def return_over_time(df):
+    result_df = pd.DataFrame()
+    
+    for col in df.columns:
+        result_df[col + '_Return_over_time'] = df[col] / df[col].iloc[0] -1
+        
+    fig = px.line(result_df, x=result_df.index, y=result_df.columns[0:],
+                  labels={'value': 'Returns to Date'},
+                  title='returns')
+    fig.update_layout(legend_title_text='Assets')
+    st.plotly_chart(fig)
+    return result_df
+    
+
+if session_state.portfolio is not None and not session_state.portfolio.empty:
+    return_till_date = return_over_time(session_state.portfolio)
+    log_returns = logreturns(session_state.portfolio)
+    cov_matrix = session_state.portfolio.pct_change().apply(lambda x: np.log(1+x)).cov()
+    corr_matrix = session_state.portfolio.pct_change().apply(lambda x: np.log(1+x)).corr()
+    trading_days = st.number_input(f'Please Select timeframe for returns', min_value=1, max_value=365, step=1, value = 252)
+
+    portfolio_var = cov_matrix.mul(total_shares,axis=0).mul(total_shares,axis=1).sum().sum()
+    standard_deviation = np.sqrt(portfolio_var) # Daily standard deviation
+    annualized_risk  = standard_deviation *np.sqrt(trading_days)
+    st.markdown(f'Annualized portfolio risk:  **{annualized_risk:.2f}**')
+    anualized_returns = session_state.portfolio.resample('Y').last().pct_change().mean()
+    assets_return = anualized_returns *total_shares
+    portfolio_return = assets_return.sum()
+    st.markdown(f'Annualized portfolio return: **{portfolio_return:.2f}**')
+
+    risk_free_rate = st.number_input(f'Please Select risk free rate', min_value=0.0, max_value=1.0, step=0.05, value = 0.12)
+    sharpe_ratio = (portfolio_return - risk_free_rate)/ annualized_risk
+    st.markdown(f'Sharpe Ratio  **{sharpe_ratio:.2f}**')
 
 
+    portfolio_returns = [] 
+    portfolio_variance = [] 
+    portfolio_weights = [] 
+
+    num_assets = len(session_state.portfolio.columns)    
+    simulations = st.number_input(f'Please Select number of simulations', min_value=100, max_value=100000, step=50, value = 1000)
+
+    for portfolio in range(simulations):
+        weights = np.random.random(num_assets)
+        weights = weights/np.sum(weights)
+        portfolio_weights.append(weights)
+        returns = np.dot(weights, anualized_returns) # Returns are the product of individual expected returns of asset and its 
+        portfolio_returns.append(returns)
+        var = cov_matrix.mul(weights, axis=0).mul(weights, axis=1).sum().sum()# Portfolio Variance
+        sd = np.sqrt(var) # Daily standard deviation
+        ann_sd = sd*np.sqrt(trading_days) # Annual standard deviation = volatility
+        portfolio_variance.append(ann_sd)
+
+        data = {'Returns':portfolio_returns, 'Volatility':portfolio_variance}
+
+    for counter, symbol in enumerate(session_state.portfolio.columns.tolist()):
+        data[symbol+' weight'] = [w[counter] for w in portfolio_weights]
+    
+    simulated_portfolios  = pd.DataFrame(data)
+    simulated_portfolios = simulated_portfolios.round(2)
+    st.dataframe(simulated_portfolios)
+    
+    
+    for index, row in simulated_portfolios.iterrows():
+        concatenated_values = ''
+        for col in simulated_portfolios.columns[2:]:
+            concatenated_values += col + ': ' + str(row[col]) + ', '
+            concatenated_values = concatenated_values.replace('_Close weight', '')
+    simulated_portfolios['Weights'] = concatenated_values
+
+    
+    simulated_portfolios = simulated_portfolios.sort_values(by='Volatility')
+    simulated_portfolios['Sharpe_ratio'] = (simulated_portfolios['Returns'] - risk_free_rate)/ simulated_portfolios['Volatility']
+    max_sharpe_ratio_portfolio = simulated_portfolios.loc[simulated_portfolios['Sharpe_ratio'].idxmax()]
+    frontier = px.scatter(simulated_portfolios, x='Volatility', y='Returns', width=800, height=600, 
+                        title='Frontier', labels={'Volatility': 'Volatility', 'Returns': 'Return'},
+                        hover_name='Weights')
+    
+    frontier.add_trace(go.Scatter(x=[simulated_portfolios.iloc[0]['Volatility']], 
+                                y=[simulated_portfolios.iloc[0]['Returns']],
+                                mode='markers',
+                                marker=dict(color='red', size=10),
+                                name='Lower Volatility', ))
+
+
+    frontier.add_trace(go.Scatter(x=[max_sharpe_ratio_portfolio['Volatility']], 
+                              y=[max_sharpe_ratio_portfolio['Returns']],
+                              mode='markers',
+                              marker=dict(color='green', size=10),
+                              name='Max Sharpe Ratio'))
+
+# Display the chart
+st.plotly_chart(frontier)
 
 
 
