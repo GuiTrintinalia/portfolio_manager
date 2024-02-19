@@ -14,4 +14,4 @@ statsmodels==0.14.0
 requests>=2.31.0
 Riskfolio-Lib>=5.0.0
 yahoo_finance>=0.2.35
-#pypfopt>=1.5.5
+##pypfopt>=1.5.5
