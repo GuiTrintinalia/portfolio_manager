@@ -618,7 +618,7 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
         data[symbol+' weight'] = [w[counter] for w in portfolio_weights]
     
     simulated_portfolios  = pd.DataFrame(data)
-    simulated_portfolios = simulated_portfolios.round(3)
+    simulated_portfolios = simulated_portfolios.round(4)
 
     
     for index, row in simulated_portfolios.iterrows():
