@@ -514,28 +514,17 @@ if session_state.data is not None:
 
 st.subheader('Assets allocation', divider='rainbow')
 
-with st.expander("**See explanation**"):
-    st.markdown("""
+ st.markdown("""
         <div style="text-align: justify">
+        1. **Enter Available Cash:** Start by entering the amount of cash you currently have available for investment. This helps us understand how much you have to work with.<br><br>
         
-        1. You can combine assets from currencies, crypto, commodities, Nasdaq, S&P500, B3, and Indexes.<br><br>
+        2. **Enter Invested Cash:** If you already have some cash invested, enter that amount here. This allows us to consider your existing investments prior to optimization.<br><br>
         
-        2. Once you have selected one or more dictionaries, you will be able to choose tickers to download.<br><br>
+        3. **Allocate Your Cash:** Once you have provided your financial details, you can allocate your cash to different assets represented by tickers (like stock symbols). For each asset, you can specify the percentage of your available cash you want to invest. Simply enter the percentage of shares you want to allocate for each asset.<br><br>
         
-        3. You must press the download button to retrieve the data.<br><br>
-        
-        4. It downloads data from Yahoo Finance, yet there may be tickers which return None or fragmented data.<br><br>
-        
-        5. Use the resample and rolling average functions to prepare your data for optimization.<br><br>
-        
-        6. If you prefer, download data with the first and last index for all tickers. However, this option may reduce the length of your resulting dataframe. It is optional to remove NaNs without any further data filling techniques.<br><br>
-        
-        7. Additionally, you have the ability to:<br>
-           - Download your data as a CSV or Excel file for further analysis.<br>
-           - Upload your own portfolio data for educational purposes, allowing you to experiment with different optimization strategies.
+        4. **Review Your Allocation:** As you allocate your cash, we'll keep track of the total percentage of shares allocated across all assets. If the total reaches 100%, your allocation is complete, and you will be able to run optimization.
         </div>
     """, unsafe_allow_html=True)
-
 
 resampling_options = ['A', 'AS', 'BA', 'BAS', '3M', '4M', '6M', '12M', 
                       'Q', 'BQ', 'QS', 'BQS', 
