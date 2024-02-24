@@ -513,18 +513,18 @@ if session_state.data is not None:
     
 
 st.subheader('Assets allocation', divider='rainbow')
-
-st.markdown("""
-        <div style="text-align: justify">
-        1. **Enter Available Cash:** Start by entering the amount of cash you currently have available for investment. This helps us understand how much you have to work with.<br><br>
-        
-        2. **Enter Invested Cash:** If you already have some cash invested, enter that amount here. This allows us to consider your existing investments prior to optimization.<br><br>
-        
-        3. **Allocate Your Cash:** Once you have provided your financial details, you can allocate your cash to different assets represented by tickers (like stock symbols). For each asset, you can specify the percentage of your available cash you want to invest. Simply enter the percentage of shares you want to allocate for each asset.<br><br>
-        
-        4. **Review Your Allocation:** As you allocate your cash, we'll keep track of the total percentage of shares allocated across all assets. If the total reaches 100%, your allocation is complete, and you will be able to run optimization.
-        </div>
-    """, unsafe_allow_html=True)
+with st.expander("See explanation"):
+    st.markdown("""
+            <div style="text-align: justify">
+            1. **Enter Available Cash:** Start by entering the amount of cash you currently have available for investment. This helps us understand how much you have to work with.<br><br>
+            
+            2. **Enter Invested Cash:** If you already have some cash invested, enter that amount here. This allows us to consider your existing investments prior to optimization.<br><br>
+            
+            3. **Allocate Your Cash:** Once you have provided your financial details, you can allocate your cash to different assets represented by tickers (like stock symbols). For each asset, you can specify the percentage of your available cash you want to invest. Simply enter the percentage of shares you want to allocate for each asset.<br><br>
+            
+            4. **Review Your Allocation:** As you allocate your cash, we'll keep track of the total percentage of shares allocated across all assets. If the total reaches 100%, your allocation is complete, and you will be able to run optimization.
+            </div>
+        """, unsafe_allow_html=True)
 
 resampling_options = ['A', 'AS', 'BA', 'BAS', '3M', '4M', '6M', '12M', 
                       'Q', 'BQ', 'QS', 'BQS', 
