@@ -509,6 +509,7 @@ if session_state.data is not None:
     st.markdown(f'**Count of NaN:** {session_state.data.isna().sum().sum()}')
     st.dataframe(session_state.data.isna().sum().to_frame().T)
     st.dataframe(session_state.data)
+    tickers = session_state.data.columns.str.split("_").str[0].unique()
     
 
 st.subheader('Assets allocation', divider='rainbow')
@@ -581,7 +582,6 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     cov_matrix = session_state.portfolio.pct_change().apply(lambda x: np.log(1+x)).cov()
     corr_matrix = session_state.portfolio.pct_change().apply(lambda x: np.log(1+x)).corr()
     trading_days = st.number_input(f'Please Select timeframe for returns', min_value=1, max_value=365, step=1, value = 252)
-
     portfolio_var = cov_matrix.mul(total_shares,axis=0).mul(total_shares,axis=1).sum().sum()
     standard_deviation = np.sqrt(portfolio_var) # Daily standard deviation
     annualized_risk  = standard_deviation *np.sqrt(trading_days)
