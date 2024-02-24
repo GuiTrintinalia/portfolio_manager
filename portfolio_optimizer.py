@@ -182,6 +182,12 @@ def return_over_time(df):
     return result_df
     
 
+def upload_file():
+    if uploaded_file is not None:
+        df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith('xlsx') else pd.read_csv(uploaded_file)
+        return df
+
+
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Portfolio Balancer")
@@ -194,11 +200,10 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(df=pd.DataFrame(), data=pd.DataFrame(), portfolio=pd.DataFrame())
+    return SessionState(df=pd.DataFrame(), data=pd.DataFrame(), portfolio=pd.DataFrame(), backtest =pd.DataFrame())
 session_state = get_session()
 
 st.subheader('Pick your assets',divider='rainbow')
-
 
 with st.expander("See explanation"):
     st.markdown("""
@@ -218,6 +223,8 @@ with st.expander("See explanation"):
             - Download your data as a CSV or Excel file for further analysis.
             - Upload your own portfolio data for educational purposes, allowing you to experiment with different optimization strategies.
     """)
+
+uploaded_file = st.file_uploader("Upload Excel/CSV file", type=["xlsx", "csv"])
 
 
 currencies_dict  =  {'USD/JPY': 'USDJPY=X', 'USD/BRL': 'BRL=X', 'USD/ARS': 'ARS=X', 'USD/PYG': 'PYG=X', 'USD/UYU': 'UYU=X',
@@ -557,14 +564,19 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     st.markdown(f'Annualized portfolio risk:  **{annualized_risk:.2f}**')
     resample_list = st.selectbox('Select resampling frequency:', options=resampling_options, index=resampling_options.index('A'))
     anualized_returns = session_state.portfolio.resample(resample_list).last().pct_change().mean()
+    st.markdown(f'**Annualized returns per shares:**')
     st.dataframe(anualized_returns)
     assets_return = anualized_returns *total_shares
     portfolio_return = assets_return.sum()
     st.markdown(f'Annualized portfolio return: **{portfolio_return:.2f}**')
 
     risk_free_rate = st.number_input(f'Please Select risk free rate', min_value=0.0, max_value=1.0, step=0.05, value = 0.12)
+    risk_taken = st.number_input(f'Please Select anualized risk of investment:', min_value=0.0, max_value=1.0, step=0.05, value = 0.1)
+    expected_return = st.number_input(f'Please Select anualized expected returns', min_value=0.0, max_value=1.0, step=0.05, value = 0.1)
+    expected_sharpe = (risk_taken - risk_free_rate)/ expected_return
+    st.markdown(f'Expected Sharpe Ratio: **{expected_sharpe:.2f}**')
     sharpe_ratio = (portfolio_return - risk_free_rate)/ annualized_risk
-    st.markdown(f'Sharpe Ratio  **{sharpe_ratio:.2f}**')
+    st.markdown(f'Initial allocation Sharpe Ratio  **{sharpe_ratio:.2f}**')
 
 
     portfolio_returns = [] 
@@ -604,6 +616,10 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     
     simulated_portfolios = simulated_portfolios.sort_values(by='Volatility')
     simulated_portfolios['Sharpe_ratio'] = (simulated_portfolios['Returns'] - risk_free_rate)/ simulated_portfolios['Volatility']
+    expected_portfolio = simulated_portfolios[
+    (simulated_portfolios['Sharpe_ratio'] >= expected_sharpe - 0.001) & 
+    (simulated_portfolios['Sharpe_ratio'] <= expected_sharpe + 0.001)]
+
     max_sharpe_ratio_portfolio = simulated_portfolios.loc[simulated_portfolios['Sharpe_ratio'].idxmax()]
     frontier = px.scatter(simulated_portfolios, x='Volatility', y='Returns', width=800, height=600, 
                         title='Frontier', labels={'Volatility': 'Volatility', 'Returns': 'Return'},
@@ -621,7 +637,19 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
                               mode='markers',
                               marker=dict(color='green', size=10),
                               name='Max Sharpe Ratio'))
+    
+    if not expected_portfolio.empty:
+        frontier.add_trace(go.Scatter(x=[expected_portfolio['Volatility'].values[0]], 
+                                  y=[expected_portfolio['Returns'].values[0]],
+                                  mode='markers',
+                                  marker=dict(color='orange', size=10),
+                                  name='Expected Sharpe Ratio'))
+    
+    max_sharpe_ratio_value = simulated_portfolios['Sharpe_ratio'].max()
+
+    st.markdown(f'Max Sharpe Ratio: **{max_sharpe_ratio_value:.2f}**')
     st.plotly_chart(frontier)
+    
 
 
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
@@ -633,33 +661,24 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     training_size = len(session_state.portfolio) - int(train_size * len(session_state.portfolio))
     training_df = session_state.portfolio[:training_size]
     test_df = session_state.portfolio[training_size:]
-    dates_list = pd.date_range(start=starting_date, periods=len(training_df), freq=f'{offset}D')
+    
+    dates_list = pd.date_range(start=starting_date, periods=offset, freq=f'{offset}D')
     st.dataframe(dates_list)
+    st.write(len(dates_list))
+    for i, date in enumerate(dates_list):
+        if i < len(dates_list) - 1:
+            # Divide o DataFrame `session_state.portfolio` com base nas datas
+            split_df = session_state.portfolio[(session_state.portfolio.index >= dates_list[i]) & 
+                                            (session_state.portfolio.index < dates_list[i + 1])]
+        else:
+            # Para o último intervalo, inclua a última data
+            split_df = session_state.portfolio[session_state.portfolio.index >= dates_list[i]]
+        
+        split_df['ID'] = i + 1  # Marca o DataFrame com um ID
+        session_state.backtest = pd.concat([session_state.backtest, split_df])
 
-#    #st.dataframe(session_state.portfolio)
-#    upper_bound = st.number_input(f'Select upper limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
-#    lower_bound = st.number_input(f'Select lower limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
-#    run = st.button('Optimize')
-#    if lower_bound < upper_bound and run:
-#         c1, c2 = st.columns(2)
-#         with c1:
-#             #mu = expected_returns.mean_historical_return(session_state.portfolio)
-            
-            
-            
-            
-            
-            
-        #     st.markdown('**Expected Returns**')
-        #     st.dataframe(mu)
-        # with c2:
-        #     #S = risk_models.sample_cov(session_state.portfolio)
-        #     #ef = EfficientFrontier(mu, S, weight_bounds=(lower_bound, upper_bound))
-        #     #raw_weights = ef.max_sharpe()
-            
-            
-            
-        #     st.markdown('**Shares**')
-        #     #cleaned_weights = ef.clean_weights()
-        #     st.dataframe(cleaned_weights)
-            
+    st.dataframe(session_state.backtest)
+    backtest_returns = session_state.backtest.set_index('ID').groupby(level=0).pct_change()
+    st.dataframe(backtest_returns)
+    
+    
