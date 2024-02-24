@@ -122,8 +122,6 @@ def fill_moving_avg(df, window_size, method='gap'):
         for col in numeric_cols:
             df[col] = df[col].rolling(window=window_size, min_periods=1).mean()
             df[col] = df[col].fillna(method='bfill')
-    st.write(f'NaN count: {df.isna().sum().sum()}')
-    st.dataframe(df.isna().sum().to_frame().T)
     return df
 
 def get_latest_values(df, tickers):
@@ -477,6 +475,8 @@ if st.sidebar.button("Apply") and session_state.data is not None:
 	session_state.data = fill_moving_avg(session_state.data, moving_avg_days, method)       
 
 if session_state.data is not None:
+    st.markdown(f'**Count of NaN:** {session_state.data.isna().sum().sum()}')
+    st.dataframe(session_state.data.isna().sum().to_frame().T)
     st.dataframe(session_state.data)
     
 
