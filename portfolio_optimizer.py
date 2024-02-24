@@ -514,7 +514,7 @@ if session_state.data is not None:
 
 st.subheader('Assets allocation', divider='rainbow')
 
- st.markdown("""
+st.markdown("""
         <div style="text-align: justify">
         1. **Enter Available Cash:** Start by entering the amount of cash you currently have available for investment. This helps us understand how much you have to work with.<br><br>
         
