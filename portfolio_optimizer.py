@@ -157,6 +157,33 @@ def compute_investments(df, tickers, total_shares, available_cash):
 
     return investments[['Ticker', 'Price', 'Papers', 'Share %', 'Invested', 'Cash']]
 
+
+def logreturns(df):
+    log_returns  = np.log(df)
+    log_returns = df.iloc[:, 0:].pct_change()
+    fig = px.line(log_returns, x=log_returns.index, y=log_returns.columns[0:],
+                  labels={'value': 'ln'},
+                  title='Ln Returns')
+    fig.update_layout(legend_title_text='Assets')
+    st.plotly_chart(fig)
+
+    return log_returns
+
+
+def return_over_time(df):
+    result_df = pd.DataFrame()
+    
+    for col in df.columns:
+        result_df[col + '_Return_over_time'] = df[col] / df[col].iloc[0] -1
+        
+    fig = px.line(result_df, x=result_df.index, y=result_df.columns[0:],
+                  labels={'value': 'Returns to Date'},
+                  title='returns')
+    fig.update_layout(legend_title_text='Assets')
+    st.plotly_chart(fig)
+    return result_df
+    
+
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Portfolio Balancer")
@@ -477,8 +504,14 @@ with st.expander("**See explanation**"):
         </div>
     """, unsafe_allow_html=True)
 
-total_shares = []
 
+resampling_options = ['A', 'AS', 'BA', 'BAS', '3M', '4M', '6M', '12M', 
+                      'Q', 'BQ', 'QS', 'BQS', 
+                      'M', 'BM', 'MS', 'BMS', 
+                      'W', 
+                      'D'] 
+
+total_shares = []
 available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
 invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
 
@@ -503,6 +536,7 @@ if session_state.data is not None:
     except NameError:
         st.write("Please download tickers before continuing.")
         
+ 
         
 if session_state.df is not None:
    st.dataframe(session_state.df)
@@ -510,33 +544,6 @@ if session_state.df is not None:
    close_price_data = [col for col  in session_state.data.columns if col.endswith('_Close')]
    session_state.portfolio  = session_state.data[close_price_data]
    
-   
-def logreturns(df):
-    log_returns  = np.log(df)
-    log_returns = df.iloc[:, 0:].pct_change()
-    fig = px.line(log_returns, x=log_returns.index, y=log_returns.columns[0:],
-                  labels={'value': 'ln'},
-                  title='Ln Returns')
-    fig.update_layout(legend_title_text='Assets')
-    st.plotly_chart(fig)
-
-    return log_returns
-
-
-def return_over_time(df):
-    result_df = pd.DataFrame()
-    
-    for col in df.columns:
-        result_df[col + '_Return_over_time'] = df[col] / df[col].iloc[0] -1
-        
-    fig = px.line(result_df, x=result_df.index, y=result_df.columns[0:],
-                  labels={'value': 'Returns to Date'},
-                  title='returns')
-    fig.update_layout(legend_title_text='Assets')
-    st.plotly_chart(fig)
-    return result_df
-    
-
 if session_state.portfolio is not None and not session_state.portfolio.empty:
     return_till_date = return_over_time(session_state.portfolio)
     log_returns = logreturns(session_state.portfolio)
@@ -548,7 +555,9 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     standard_deviation = np.sqrt(portfolio_var) # Daily standard deviation
     annualized_risk  = standard_deviation *np.sqrt(trading_days)
     st.markdown(f'Annualized portfolio risk:  **{annualized_risk:.2f}**')
-    anualized_returns = session_state.portfolio.resample('Y').last().pct_change().mean()
+    resample_list = st.selectbox('Select resampling frequency:', options=resampling_options, index=resampling_options.index('A'))
+    anualized_returns = session_state.portfolio.resample(resample_list).last().pct_change().mean()
+    st.dataframe(anualized_returns)
     assets_return = anualized_returns *total_shares
     portfolio_return = assets_return.sum()
     st.markdown(f'Annualized portfolio return: **{portfolio_return:.2f}**')
@@ -614,7 +623,18 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
                               name='Max Sharpe Ratio'))
     st.plotly_chart(frontier)
 
-    st.write('thanks')
+
+if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
+    st.subheader('Backtesting Strategy', divider='rainbow')
+    train_size = st.number_input('Please Select train/test split', min_value=0.00, max_value=1.0, step=0.05, value=0.8)
+    offset = st.number_input('Please Select days to jump', min_value=1, max_value=10000, step=7, value=7)
+    starting_date = session_state.portfolio.index.min()
+    ending_date = session_state.portfolio.index.max()
+    training_size = len(session_state.portfolio) - int(train_size * len(session_state.portfolio))
+    training_df = session_state.portfolio[:training_size]
+    test_df = session_state.portfolio[training_size:]
+    dates_list = pd.date_range(start=starting_date, periods=len(training_df), freq=f'{offset}D')
+    st.dataframe(dates_list)
 
 #    #st.dataframe(session_state.portfolio)
 #    upper_bound = st.number_input(f'Select upper limit:', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
