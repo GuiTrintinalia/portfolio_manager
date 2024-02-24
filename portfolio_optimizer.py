@@ -19,12 +19,15 @@ import plotly.graph_objects as go
 import io
 from io import BytesIO
 import pyarrow.parquet as pq
+import base64
+
 
 
 # from pypfopt import EfficientFrontier
 # from pypfopt import risk_models
 # from pypfopt import expected_returns
 # from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
+
 
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
@@ -182,11 +185,30 @@ def return_over_time(df):
     return result_df
     
 
-def upload_file():
-    if uploaded_file is not None:
-        df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith('xlsx') else pd.read_csv(uploaded_file)
-        return df
+def upload_file(file):
+    df = pd.read_excel(file) if file.name.endswith('xlsx') else pd.read_csv(file)
+    df.set_index('Date', inplace = True, drop = True)
+    df.index = pd.to_datetime(df.index)
+    return df
 
+
+def download_dfs(session_state, download_option):
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
+    attribute_name = mapping.get(download_option)
+    if attribute_name is not None:
+        data_attribute = getattr(session_state, attribute_name)
+        if data_attribute is not None:
+            df_to_download = pd.DataFrame(data_attribute)
+            csv = df_to_download.to_csv(index=True)  # incluir o índice no arquivo CSV
+            b64 = base64.b64encode(csv.encode()).decode()  # codificação B64 para o link de download
+            href = f'<a href="data:file/csv;base64,{b64}" download="{download_option}.csv">Download {download_option} Data</a>'
+            return href
+        else:
+            st.warning(f"No data available for {download_option}.")
+            return None
+    else:
+        st.error(f"Invalid download option: {download_option}")
+        return None
 
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
@@ -224,7 +246,9 @@ with st.expander("See explanation"):
             - Upload your own portfolio data for educational purposes, allowing you to experiment with different optimization strategies.
     """)
 
-uploaded_file = st.file_uploader("Upload Excel/CSV file", type=["xlsx", "csv"])
+file  = st.file_uploader("Upload Excel/CSV file", type=["xlsx", "csv"])
+if file:
+    session_state.data = upload_file(file)
 
 
 currencies_dict  =  {'USD/JPY': 'USDJPY=X', 'USD/BRL': 'BRL=X', 'USD/ARS': 'ARS=X', 'USD/PYG': 'PYG=X', 'USD/UYU': 'UYU=X',
@@ -573,7 +597,7 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     risk_free_rate = st.number_input(f'Please Select risk free rate', min_value=0.0, max_value=1.0, step=0.05, value = 0.12)
     risk_taken = st.number_input(f'Please Select anualized risk of investment:', min_value=0.0, max_value=1.0, step=0.05, value = 0.1)
     expected_return = st.number_input(f'Please Select anualized expected returns', min_value=0.0, max_value=1.0, step=0.05, value = 0.1)
-    expected_sharpe = (risk_taken - risk_free_rate)/ expected_return
+    expected_sharpe = (expected_return - risk_free_rate)/ risk_taken
     st.markdown(f'Expected Sharpe Ratio: **{expected_sharpe:.2f}**')
     sharpe_ratio = (portfolio_return - risk_free_rate)/ annualized_risk
     st.markdown(f'Initial allocation Sharpe Ratio  **{sharpe_ratio:.2f}**')
@@ -681,4 +705,14 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     backtest_returns = session_state.backtest.set_index('ID').groupby(level=0).pct_change()
     st.dataframe(backtest_returns)
     
-    
+
+
+if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
+    st.subheader("Download section:", divider='rainbow')
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
+    download_option = st.selectbox("Select data to download:", list(mapping.keys()))
+    download_button = st.button('Download')
+    if download_button:
+        download_link = download_dfs(session_state, download_option)
+        if download_link:
+            st.markdown(download_link, unsafe_allow_html=True)
