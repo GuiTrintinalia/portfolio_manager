@@ -713,12 +713,12 @@ def backtest_frontier(df_list, risk_free_rate,  simulations=1000):
             ann_sd = sd * np.sqrt(trading_days)  
             portfolio_variance.append(ann_sd)
             sharpe_ratio = (returns - risk_free_rate) / ann_sd
-            portfolio_sharpe_ratio.append(portfolio_sharpe_ratio)
+            portfolio_sharpe_ratio.append(sharpe_ratio)
 
         data = {
             'Returns': portfolio_returns,
             'Volatility': portfolio_variance,
-            'Sharpe_ratio':portfolio_sharpe_ratio ,
+            'Sharpe_ratio':portfolio_sharpe_ratio,
             'ID': df['ID'].iloc[0]
         }
 
