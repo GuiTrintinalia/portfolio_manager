@@ -697,16 +697,15 @@ def backtest_frontier(df_list, risk_free_rate,  simulations=1000):
         portfolio_variance = [] 
         portfolio_weights = [] 
         portfolio_sharpe_ratio =[]
-        num_assets = len(df.columns)
+        num_assets = len(df.columns)-1
         trading_days = 252  # Assuming trading days in a year
 
         annualized_returns = df.drop(columns=['ID']).pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
-
-        for _ in range(simulations):
+        for portfolio in range(simulations):
             weights = np.random.random(num_assets)
-            weights = np.sum(weights)
+            weights = weights/np.sum(weights)
+            returns = np.dot(weights, annualized_returns)
             portfolio_weights.append(weights)
-            returns = np.dot(weights, annualized_returns)  # Portfolio Returns
             portfolio_returns.append(returns)
             var = cov_matrix.mul(weights, axis=0).mul(weights, axis=1).sum().sum()  
             sd = np.sqrt(var) 
@@ -722,6 +721,12 @@ def backtest_frontier(df_list, risk_free_rate,  simulations=1000):
             'ID': df['ID'].iloc[0]
         }
 
+        for counter, symbol in enumerate(df.columns):
+                if symbol == 'ID':
+                    continue
+                ticker_name = symbol.split('_')[0]  # Remove underscores from ticker name
+                data[ticker_name + '_Weight'] = [w[counter] for w in portfolio_weights]
+            
         simulated_portfolios = pd.DataFrame(data)
         simulated_portfolios = simulated_portfolios.round(4)
         result_dfs.append(simulated_portfolios)
@@ -729,6 +734,11 @@ def backtest_frontier(df_list, risk_free_rate,  simulations=1000):
     final_df = pd.concat(result_dfs, ignore_index=True)
 
     return final_df
+
+def get_max_sharpe_per_id(final_df):
+    max_sharpe_rows = final_df.loc[final_df.groupby('ID')['Sharpe_ratio'].idxmax()]
+    return max_sharpe_rows
+
 
 
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
@@ -751,7 +761,8 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     surfing_frontier = st.button('Wave Sharpe Ratio')
     if surfing_frontier:
         optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate)
-        st.dataframe(optimized_dfs)
+        backtested_df =  get_max_sharpe_per_id(optimized_dfs)
+        st.dataframe(backtested_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
     st.subheader("Download section:", divider='rainbow')
