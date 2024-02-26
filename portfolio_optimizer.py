@@ -86,6 +86,32 @@ def download_data(data, period='1y'):
     combined_df = pd.concat(dfs, axis=1, join='outer')  # Use join='outer' to handle different time indices
     return combined_df
 
+
+def upload_file(file):
+    df = pd.read_excel(file) if file.name.endswith('xlsx') else pd.read_csv(file)
+    df.set_index('Date', inplace = True, drop = True)
+    df.index = pd.to_datetime(df.index)
+    return df
+
+
+def download_dfs(session_state, download_option):
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
+    attribute_name = mapping.get(download_option)
+    if attribute_name is not None:
+        data_attribute = getattr(session_state, attribute_name)
+        if data_attribute is not None:
+            df_to_download = pd.DataFrame(data_attribute)
+            csv = df_to_download.to_csv(index=True)  # incluir o índice no arquivo CSV
+            b64 = base64.b64encode(csv.encode()).decode()  # codificação B64 para o link de download
+            href = f'<a href="data:file/csv;base64,{b64}" download="{download_option}.csv">Download {download_option} Data</a>'
+            return href
+        else:
+            st.warning(f"No data available for {download_option}.")
+            return None
+    else:
+        st.error(f"Invalid download option: {download_option}")
+        return None
+    
     
 def load_data_from_github(url):
     response = requests.get(url)
@@ -184,51 +210,34 @@ def return_over_time(df):
     st.plotly_chart(fig)
     return result_df
     
-
-def upload_file(file):
-    df = pd.read_excel(file) if file.name.endswith('xlsx') else pd.read_csv(file)
-    df.set_index('Date', inplace = True, drop = True)
-    df.index = pd.to_datetime(df.index)
-    return df
-
-
-def download_dfs(session_state, download_option):
-    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
-    attribute_name = mapping.get(download_option)
-    if attribute_name is not None:
-        data_attribute = getattr(session_state, attribute_name)
-        if data_attribute is not None:
-            df_to_download = pd.DataFrame(data_attribute)
-            csv = df_to_download.to_csv(index=True)  # incluir o índice no arquivo CSV
-            b64 = base64.b64encode(csv.encode()).decode()  # codificação B64 para o link de download
-            href = f'<a href="data:file/csv;base64,{b64}" download="{download_option}.csv">Download {download_option} Data</a>'
-            return href
-        else:
-            st.warning(f"No data available for {download_option}.")
-            return None
-    else:
-        st.error(f"Invalid download option: {download_option}")
-        return None
     
-    
-def eficiency_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken, expected_return, simulations= 1000, resampler='A'):
+def efficient_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken, expected_return, simulations= 1000, resampler='A'):
     return_till_date = return_over_time(df)
     log_returns = logreturns(df)
     cov_matrix = df.pct_change().apply(lambda x: np.log(1+x)).cov()
-    corr_matrix = df.pct_change().apply(lambda x: np.log(1+x)).corr()
     portfolio_var = cov_matrix.mul(total_shares,axis=0).mul(total_shares,axis=1).sum().sum()
-    standard_deviation = np.sqrt(portfolio_var) # Daily standard deviation
+    standard_deviation = np.sqrt(portfolio_var) 
     annualized_risk  = standard_deviation *np.sqrt(trading_days)
-    st.markdown(f'Annualized portfolio risk:  **{annualized_risk:.2f}**')
+    simple_annualized_risk = np.exp(annualized_risk) - 1
+    simple_risk = np.exp(annualized_risk) - 1
+    st.markdown(f'Annualized portfolio risk:  **{simple_risk:.4f}**')
     annualized_returns = df.resample(resampler).last().pct_change().mean()
-    annualized_returns = annualized_returns.rename('Simple Returns')
-    st.markdown(f'**Annualized returns per shares:**')
-    st.dataframe(annualized_returns)
-    assets_return = annualized_returns *total_shares
+    annualized_returns = df.pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
+    annualized_returns = annualized_returns.rename('Log Returns')
+    simple_returns = np.exp(annualized_returns) - 1
+    simple_returns = simple_returns.rename('Simple Returns')
+    weights_series = pd.Series(total_shares, index=df.columns, name='Weights')
+    returns_df = pd.concat([annualized_returns, simple_returns, weights_series], axis=1)
+    returns_df['Weighted Returns'] = returns_df['Simple Returns'] * returns_df['Weights']
+    returns_df['Cumulative Portfolio Returns'] = returns_df['Weighted Returns'].cumsum()
+
+    st.markdown(f'**Annualized portfolio return:**')
+    st.dataframe(returns_df)
+    assets_return = simple_returns *total_shares
     portfolio_return = assets_return.sum()
-    st.markdown(f'Annualized portfolio return: **{portfolio_return:.2f}**')
-    sharpe_ratio = (portfolio_return - risk_free_rate)/ annualized_risk
-    st.markdown(f'Initial allocation Sharpe Ratio  **{sharpe_ratio:.2f}**')
+    st.markdown(f'Annualized portfolio return: **{portfolio_return:.4f}**')
+    sharpe_ratio = (portfolio_return - risk_free_rate)/ simple_annualized_risk
+    st.markdown(f'Initial allocation Sharpe Ratio  **{sharpe_ratio:.4f}**')
 
     portfolio_returns = [] 
     portfolio_variance = [] 
@@ -240,7 +249,7 @@ def eficiency_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken
         weights = np.random.random(num_assets)
         weights = weights/np.sum(weights)
         portfolio_weights.append(weights)
-        returns = np.dot(weights, annualized_returns) # Returns are the product of individual expected returns of asset and its 
+        returns = np.dot(weights, simple_returns) # Returns are the product of individual expected returns of asset and its 
         portfolio_returns.append(returns)
         var = cov_matrix.mul(weights, axis=0).mul(weights, axis=1).sum().sum()# Portfolio Variance
         sd = np.sqrt(var) # Daily standard deviation
@@ -257,7 +266,7 @@ def eficiency_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken
 
     return simulated_portfolios
 
-def plot_eficiency_frontier(simulated_portfolios, risk_free_rate,expected_sharpe,expected_return, risk_taken):
+def plot_efficient_frontier(simulated_portfolios, risk_free_rate,expected_sharpe,expected_return, risk_taken):
     
     for index, row in simulated_portfolios.iterrows():
         concatenated_values = ''
@@ -281,7 +290,7 @@ def plot_eficiency_frontier(simulated_portfolios, risk_free_rate,expected_sharpe
 
     max_sharpe_ratio_portfolio = simulated_portfolios.loc[simulated_portfolios['Sharpe_ratio'].idxmax()]
     frontier = px.scatter(simulated_portfolios, x='Volatility', y='Returns', width=800, height=600, 
-                        title='Frontier', labels={'Volatility': 'Volatility', 'Returns': 'Return'},
+                        title="Markowitz's Efficient Frontier", labels={'Volatility': 'Volatility', 'Returns': 'Return'},
                         hover_name='Weights')
     
     frontier.add_trace(go.Scatter(x=[simulated_portfolios.iloc[0]['Volatility']], 
@@ -315,6 +324,61 @@ def plot_eficiency_frontier(simulated_portfolios, risk_free_rate,expected_sharpe
     st.markdown(f'Max Sharpe Ratio: **{max_sharpe_ratio_value:.2f}**')
     st.plotly_chart(frontier)
     
+
+def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
+    result_dfs = []
+    for df in df_list:
+        cov_matrix = df.drop(columns=['ID']).pct_change().apply(lambda x: np.log(1 + x)).cov()
+        portfolio_returns = [] 
+        portfolio_variance = [] 
+        portfolio_weights = [] 
+        portfolio_sharpe_ratio =[]
+        num_assets = len(df.columns)-1
+        # Assuming trading days in a year
+
+        annualized_returns = df.drop(columns=['ID']).pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
+        for portfolio in range(simulations):
+            weights = np.random.random(num_assets)
+            weights = weights/np.sum(weights)
+            returns = np.dot(weights, annualized_returns)
+            portfolio_weights.append(weights)
+            portfolio_returns.append(returns)
+            var = cov_matrix.mul(weights, axis=0).mul(weights, axis=1).sum().sum()  
+            sd = np.sqrt(var) 
+            ann_sd = sd * np.sqrt(trading_days)  
+            portfolio_variance.append(ann_sd)
+            if returns > 0:
+                sharpe_ratio = (returns - np.log(1 + risk_free_rate)) / ann_sd
+            else:
+                sharpe_ratio = (returns + np.log(1 + risk_free_rate)) / ann_sd
+
+            portfolio_sharpe_ratio.append(sharpe_ratio)
+
+        data = {
+            'Log Returns': portfolio_returns,
+            'Volatility': portfolio_variance,
+            'Sharpe_ratio':portfolio_sharpe_ratio,
+            'ID': df['ID'].iloc[0]
+        }
+
+        for counter, symbol in enumerate(df.columns):
+                if symbol == 'ID':
+                    continue
+                ticker_name = symbol.split('_')[0]  # Remove underscores from ticker name
+                data[ticker_name + '_Weight'] = [w[counter] for w in portfolio_weights]
+            
+        simulated_portfolios = pd.DataFrame(data)
+        simulated_portfolios = simulated_portfolios.round(4)
+        result_dfs.append(simulated_portfolios)
+        
+    final_df = pd.concat(result_dfs, ignore_index=True)
+
+    return final_df
+
+def get_max_sharpe_per_id(final_df):
+    max_sharpe_rows = final_df.loc[final_df.groupby('ID')['Sharpe_ratio'].idxmax()]
+    return max_sharpe_rows
+
 
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
@@ -677,69 +741,17 @@ if session_state.df is not None:
 if session_state.portfolio is not None and not session_state.portfolio.empty:
     trading_days = st.number_input(f'Please Select timeframe for returns', min_value=1, max_value=365, step=1, value = 252)
     resample_list = st.selectbox('Select resampling frequency:', options=resampling_options, index=resampling_options.index('A'))
-    risk_free_rate = st.number_input(f'Please Select risk free rate', min_value=0.0, max_value=1.0, step=0.03, value = 0.04)
+    risk_free_rate = st.number_input(f'Please Select risk free rate', min_value=0.0, max_value=1.0, step=0.03, value = 0.05)
     risk_taken = st.number_input(f'Please Select anualized risk of investment:', min_value=0.0, max_value=1.0, step=0.02, value = 0.1)
-    expected_return = st.number_input(f'Please Select anualized expected returns', min_value=0.0, max_value=1.0, step=0.05, value = 0.1)
+    expected_return = st.number_input(f'Please Select anualized expected returns', min_value=0.0, max_value=1.0, step=0.05, value = 0.15)
     simulations = st.number_input(f'Please Select number of simulations', min_value=100, max_value=100000, step=50, value = 1000)
     expected_sharpe = (expected_return - risk_free_rate)/ risk_taken
     st.markdown(f'Expected Sharpe Ratio: **{expected_sharpe:.2f}**')
     run_simulations = st.button('Run simulations')
     if run_simulations:
-        simulated_portfolios = eficiency_frontier(session_state.portfolio, trading_days, total_shares, risk_free_rate, risk_taken, expected_return, simulations, resample_list)
-        plot_eficiency_frontier(simulated_portfolios, risk_free_rate, expected_sharpe,expected_return, risk_taken)
+        simulated_portfolios = efficient_frontier(session_state.portfolio, trading_days, total_shares, risk_free_rate, risk_taken, expected_return, simulations, resample_list)
+        plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharpe,expected_return, risk_taken)
         
-        
-def backtest_frontier(df_list, risk_free_rate,  simulations=1000):
-    result_dfs = []
-    for df in df_list:
-        cov_matrix = df.drop(columns=['ID']).pct_change().apply(lambda x: np.log(1 + x)).cov()
-        portfolio_returns = [] 
-        portfolio_variance = [] 
-        portfolio_weights = [] 
-        portfolio_sharpe_ratio =[]
-        num_assets = len(df.columns)-1
-        trading_days = 252  # Assuming trading days in a year
-
-        annualized_returns = df.drop(columns=['ID']).pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
-        for portfolio in range(simulations):
-            weights = np.random.random(num_assets)
-            weights = weights/np.sum(weights)
-            returns = np.dot(weights, annualized_returns)
-            portfolio_weights.append(weights)
-            portfolio_returns.append(returns)
-            var = cov_matrix.mul(weights, axis=0).mul(weights, axis=1).sum().sum()  
-            sd = np.sqrt(var) 
-            ann_sd = sd * np.sqrt(trading_days)  
-            portfolio_variance.append(ann_sd)
-            sharpe_ratio = (returns - risk_free_rate) / ann_sd
-            portfolio_sharpe_ratio.append(sharpe_ratio)
-
-        data = {
-            'Returns': portfolio_returns,
-            'Volatility': portfolio_variance,
-            'Sharpe_ratio':portfolio_sharpe_ratio,
-            'ID': df['ID'].iloc[0]
-        }
-
-        for counter, symbol in enumerate(df.columns):
-                if symbol == 'ID':
-                    continue
-                ticker_name = symbol.split('_')[0]  # Remove underscores from ticker name
-                data[ticker_name + '_Weight'] = [w[counter] for w in portfolio_weights]
-            
-        simulated_portfolios = pd.DataFrame(data)
-        simulated_portfolios = simulated_portfolios.round(4)
-        result_dfs.append(simulated_portfolios)
-        
-    final_df = pd.concat(result_dfs, ignore_index=True)
-
-    return final_df
-
-def get_max_sharpe_per_id(final_df):
-    max_sharpe_rows = final_df.loc[final_df.groupby('ID')['Sharpe_ratio'].idxmax()]
-    return max_sharpe_rows
-
-
 
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
     st.subheader('Backtesting Strategy', divider='rainbow')
@@ -760,7 +772,7 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
         df_id += 1  # Increment DataFrame ID for the next DataFrame
     surfing_frontier = st.button('Wave Sharpe Ratio')
     if surfing_frontier:
-        optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate)
+        optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate,trading_days)
         backtested_df =  get_max_sharpe_per_id(optimized_dfs)
         st.dataframe(backtested_df)
 
@@ -773,3 +785,5 @@ if session_state.df is not None or session_state.data is not None or session_sta
         download_link = download_dfs(session_state, download_option)
         if download_link:
             st.markdown(download_link, unsafe_allow_html=True)
+            
+            
