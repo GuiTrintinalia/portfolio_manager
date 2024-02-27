@@ -712,14 +712,13 @@ resampling_options = ['A', 'AS', 'BA', 'BAS', '3M', '4M', '6M', '12M',
                       'W', 'D'] 
 
 total_shares = []
-available_cash = st.number_input("Enter available cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
 invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
 
 if session_state.data is not None:
     try:
         if 'tickers' in globals() and tickers is not None:
             for ticker in tickers:
-                share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, step=0.05, format="%.2f")
+                share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value = 1.0/len(tickers), step=0.05, format="%.2f")
                 total_shares.append(share)
                 allocated_shares =  sum(total_shares)
                 shares_to_allocate = 1 - allocated_shares
