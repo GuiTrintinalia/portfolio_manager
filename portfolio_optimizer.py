@@ -679,18 +679,17 @@ method = st.sidebar.selectbox("Method:", ['gap', 'rolling'])
 if st.sidebar.button("Apply") and session_state.data is not None:
 	session_state.data = fill_moving_avg(session_state.data, moving_avg_days, method)       
 
+st.sidebar.markdown('**Missing Values**')    
+remove_nan = st.sidebar.button('Dropna')
+if remove_nan:
+    session_state.data = drop_nan_rows(session_state.data)
+
 if session_state.data is not None:
     st.markdown(f'**Count of NaN:** {session_state.data.isna().sum().sum()}')
     st.dataframe(session_state.data.isna().sum().to_frame().T)
     st.dataframe(session_state.data)
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
     tickers  = set(tickers)
-
-
-st.sidebar.markdown('**Missing Values**')    
-remove_nan = st.sidebar.button('Dropna')
-if remove_nan:
-    session_state.data = drop_nan_rows(session_state.data)
 
 st.subheader('Assets allocation', divider='rainbow')
 with st.expander("See explanation"):
@@ -728,7 +727,8 @@ if session_state.data is not None:
             if allocated_shares == 1.0:
                 st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
                 session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
-                    
+                st.dataframe(session_state.df)    
+		    
             elif 0.0 < allocated_shares < 1.0:
                 st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
             
