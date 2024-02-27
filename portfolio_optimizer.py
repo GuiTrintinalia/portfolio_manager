@@ -786,18 +786,19 @@ def surfing_sharpe_optimize(df, initial_capital):
     rel_quant_start_idx = len(df.columns) - num_assets
 
     # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
-    trading_df = pd.DataFrame(columns=df.columns[rel_quant_start_idx:])
-    st.dataframe(trading_df)
+    optimized_portfolio = pd.DataFrame(columns=df.columns[rel_quant_start_idx:])
+
     # Iterar sobre as linhas do DataFrame (começando da linha 2)
     for i in range(1, len(df)):
         # Obter o capital inicial e o lucro da linha anterior
         prev_initial_capital = initial_capital
         prev_profit = profit_loss[-1] if profit_loss else 0
 
-        # Obter as relações de peso/preço da linha atual e calcular as quantidades desejadas
-        rel_weight_price = df.iloc[i, rel_quant_start_idx:].values.tolist()
-        quantities = [(prev_initial_capital + prev_profit) * rel_weight_price[j] for j in range(num_assets)]
-
+        # Obter os preços dos ativos na linha atual e calcular as quantidades desejadas
+        asset_prices = df.iloc[i, rel_quant_start_idx:].values.tolist()
+	st.write(asset_prices)
+        quantities = [(prev_initial_capital + prev_profit) * price for price in asset_prices]
+	st.write(quantities)
         # Criar o problema de otimização
         prob = pulp.LpProblem(f"Optimize Portfolio for Row {i+1}", pulp.LpMaximize)
 
@@ -809,7 +810,7 @@ def surfing_sharpe_optimize(df, initial_capital):
             prob += quantities_vars[j] == quantities[j]
 
         # Restrições (calcular o lucro)
-        profit = pulp.lpSum([(quantities_vars[j] - df.iloc[i - 1, rel_quant_start_idx + j]) * rel_weight_price[j] for j in range(num_assets)])
+        profit = pulp.lpSum([(quantities_vars[j] - df.iloc[i - 1, rel_quant_start_idx + j]) * asset_prices[j] for j in range(num_assets)])
 
         # Função objetivo (maximizar o lucro)
         prob += prev_initial_capital + profit
@@ -821,7 +822,7 @@ def surfing_sharpe_optimize(df, initial_capital):
         initial_capital = prev_initial_capital + pulp.value(profit)
 
         # Adicionar as quantidades de compra e venda de cada ativo ao DataFrame
-        trading_df.loc[i, :] = [pulp.value(quantities_vars[j]) - df.iloc[i - 1, rel_quant_start_idx + j] for j in range(num_assets)]
+        optimized_portfolio.loc[i, :] = [pulp.value(quantities_vars[j]) - df.iloc[i - 1, rel_quant_start_idx + j] for j in range(num_assets)]
 
         # Adicionar o lucro à lista de resultados
         profit_loss.append(initial_capital)
@@ -829,7 +830,6 @@ def surfing_sharpe_optimize(df, initial_capital):
     # Adicionar a lista de resultados ao DataFrame original
     df['capital_profit_loss'] = [initial_capital] + profit_loss[:-1]
 
-    return trading_df
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
@@ -837,22 +837,22 @@ if surfing_frontier:
     backtested_df = get_max_sharpe_per_id(optimized_dfs)
     backtested_df.set_index('Date', inplace=True, drop=True)
     price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
-    merged_backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
-    merged_backtested_df.columns = [col.replace('_Close', '_Price') for col in merged_backtested_df.columns]
+    backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
+    backtested_df.columns = [col.replace('_Close', '_Price') for col in merged_backtested_df.columns]
    
-    weight_columns = [col for col in merged_backtested_df.columns if col.endswith('_Weight')]
-    relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
+    weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
+    rel_weight_price_df = pd.DataFrame(index=backtested_df.index)
     
     for weight_col in weight_columns:
 	    ticker = weight_col[:-len('_Weight')]
-	    close_col = f'{ticker}_Price'
-	    if close_col in merged_backtested_df.columns:
-	    	relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
+	    price_col = f'{ticker}_Price'
+	    if price_col in backtested_df.columns:
+	    	rel_weight_price_df[f'{ticker}rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
     
-    merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
-    st.dataframe(merged_backtested_df)
-    trading_df = surfing_sharpe_optimize(merged_backtested_df,invested_cash)
-
+    backtested_df = pd.concat([merged_backtested_df, rel_weight_price_df], axis=1)
+    st.dataframe(backtested_df)
+    optimized_df = surfing_sharpe_optimize(merged_backtested_df,invested_cash)
+    st.dataframe(optimized_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
     st.subheader("Download section:", divider='rainbow')
