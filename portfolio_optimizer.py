@@ -791,7 +791,7 @@ def surfing_sharpe_optimize(df, initial_capital):
 
     # Renomear as colunas das quantidades calculadas para cada ticker
     tickers = df.columns[rel_quant_start_idx:]
-    initial_quantities_dict = {f"quantidades_{ticker}": quantity for ticker, quantity in zip(tickers, initial_quantities)}
+    initial_quantities_dict = {f"quantidades_{ticker.split('_rel')[0]}": quantity for ticker, quantity in zip(tickers, initial_quantities)}
 
     # Exibir as quantidades iniciais
     st.write("Quantidades Iniciais:")
@@ -806,6 +806,7 @@ def surfing_sharpe_optimize(df, initial_capital):
 
     # Exibir o DataFrame resultante
     st.dataframe(optimized_portfolio)
+
 
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
@@ -824,7 +825,7 @@ if surfing_frontier:
 	    ticker = weight_col[:-len('_Weight')]
 	    price_col = f'{ticker}_Price'
 	    if price_col in backtested_df.columns:
-	    	rel_weight_price_df[f'{ticker}rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
+	    	rel_weight_price_df[f'{ticker}_rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
     
     backtested_df = pd.concat([backtested_df, rel_weight_price_df], axis=1)
     st.dataframe(backtested_df)
