@@ -804,9 +804,6 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
 	    
 	    
 	    
-	    
-	    
-	    st.dataframe(backtested_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
     st.subheader("Download section:", divider='rainbow')
