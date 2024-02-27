@@ -776,28 +776,25 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     	df_id += 1
     	starting_date = offset_date
 
-    surfing_frontier = st.button('Wave Sharpe Ratio')
-    if surfing_frontier:
-        optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate,trading_days)
-        backtested_df =  get_max_sharpe_per_id(optimized_dfs)
-	backtested_df.set_index('Date', inplace=True, drop=True)
-	price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
-	merged_backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
-	merged_backtested_df.columns = [col.replace('_Close', '_Price') for col in merged_backtested_df.columns]
-	   
-	weight_columns = [col for col in merged_backtested_df.columns if col.endswith('_Weight')]
-	relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
-	
-	for weight_col in weight_columns:
-	    ticker = weight_col[:-len('_Weight')]
-	    close_col = f'{ticker}_Close'
-	    if close_col in merged_backtested_df.columns:
-	        relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
-	merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
-	st.dataframe(merged_backtested_df)    
-	    
-	    
-	    
+surfing_frontier = st.button('Wave Sharpe Ratio')
+if surfing_frontier:
+    optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
+    backtested_df = get_max_sharpe_per_id(optimized_dfs)
+    backtested_df.set_index('Date', inplace=True, drop=True)
+    price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
+    merged_backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
+    merged_backtested_df.columns = [col.replace('_Close', '_Price') for col in merged_backtested_df.columns]
+   
+    weight_columns = [col for col in merged_backtested_df.columns if col.endswith('_Weight')]
+    relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
+    
+    for weight_col in weight_columns:
+	ticker = weight_col[:-len('_Weight')]
+	close_col = f'{ticker}_Close'
+	if close_col in merged_backtested_df.columns:
+	    relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
+    merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
+    st.dataframe(merged_backtested_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
     st.subheader("Download section:", divider='rainbow')
