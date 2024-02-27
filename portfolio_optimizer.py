@@ -725,7 +725,7 @@ if session_state.data is not None:
                 allocated_shares =  sum(total_shares)
                 shares_to_allocate = 1 - allocated_shares
                 
-            if allocated_shares == 1:
+            if allocated_shares == 1.0:
                 st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
                 session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
                     
