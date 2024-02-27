@@ -780,31 +780,21 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     if surfing_frontier:
         optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate,trading_days)
         backtested_df =  get_max_sharpe_per_id(optimized_dfs)
-        st.dataframe(backtested_df)
 	backtested_df.set_index('Date', inplace=True, drop=True)
 	price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
 	merged_backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
 	merged_backtested_df.columns = [col.replace('_Close', '_Price') for col in merged_backtested_df.columns]
-
-
-st.dataframe(merged_backtested_df)    
-# 	weight_columns = [col for col in merged_backtested_df.columns if col.endswith('_Weight')]
-# 	relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
+	   
+	weight_columns = [col for col in merged_backtested_df.columns if col.endswith('_Weight')]
+	relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
 	
-# 	# Iterate over each weight column
-# 	for weight_col in weight_columns:
-# 	    # Extract the prefix from the weight column name
-# 	    ticker = weight_col[:-len('_Weight')]
-# 	    # Find the corresponding close column
-# 	    close_col = f'{ticker}_Close'
-# 	    # Check if the close column exists
-# 	    if close_col in merged_backtested_df.columns:
-# 	        # Calculate relative quantity by dividing weight by close
-# 	        relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
-
-# # Concatenate merged_backtested_df and relative_quantity_df along columns (axis=1)
-# merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
-	    
+	for weight_col in weight_columns:
+	    ticker = weight_col[:-len('_Weight')]
+	    close_col = f'{ticker}_Close'
+	    if close_col in merged_backtested_df.columns:
+	        relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
+	merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
+	st.dataframe(merged_backtested_df)    
 	    
 	    
 	    
