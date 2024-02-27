@@ -853,8 +853,7 @@ if surfing_frontier:
     
     merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
     st.dataframe(merged_backtested_df)
-    st.write(merged_backtested_df.columns)
-    trading_df = surfing_sharpe_optimize(merged_backtested_df,invested_cash,len(price_columns))
+    trading_df = surfing_sharpe_optimize(merged_backtested_df,invested_cash)
     st.dataframe(trading_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
