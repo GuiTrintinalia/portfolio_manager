@@ -787,7 +787,7 @@ def surfing_sharpe_optimize(df, initial_capital):
 
     # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
     trading_df = pd.DataFrame(columns=df.columns[rel_quant_start_idx:])
-
+    st.dataframe(trading_df)
     # Iterar sobre as linhas do DataFrame (começando da linha 2)
     for i in range(1, len(df)):
         # Obter o capital inicial e o lucro da linha anterior
