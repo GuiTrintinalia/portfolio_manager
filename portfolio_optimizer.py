@@ -838,7 +838,7 @@ if surfing_frontier:
     backtested_df.set_index('Date', inplace=True, drop=True)
     price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
     backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
-    backtested_df.columns = [col.replace('_Close', '_Price') for col in merged_backtested_df.columns]
+    backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
    
     weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
     rel_weight_price_df = pd.DataFrame(index=backtested_df.index)
@@ -849,9 +849,9 @@ if surfing_frontier:
 	    if price_col in backtested_df.columns:
 	    	rel_weight_price_df[f'{ticker}rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
     
-    backtested_df = pd.concat([merged_backtested_df, rel_weight_price_df], axis=1)
+    backtested_df = pd.concat([backtested_df, rel_weight_price_df], axis=1)
     st.dataframe(backtested_df)
-    optimized_df = surfing_sharpe_optimize(merged_backtested_df,invested_cash)
+    optimized_df = surfing_sharpe_optimize(backtested_df,invested_cash)
     st.dataframe(optimized_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
