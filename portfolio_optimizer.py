@@ -789,10 +789,11 @@ if surfing_frontier:
     relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
     
     for weight_col in weight_columns:
-	ticker = weight_col[:-len('_Weight')]
-	close_col = f'{ticker}_Close'
-	if close_col in merged_backtested_df.columns:
-	    relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
+	    ticker = weight_col[:-len('_Weight')]
+	    close_col = f'{ticker}_Close'
+	    if close_col in merged_backtested_df.columns:
+	    	relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
+    
     merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
     st.dataframe(merged_backtested_df)
 
