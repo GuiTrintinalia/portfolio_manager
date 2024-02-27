@@ -361,7 +361,7 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
             'Volatility': portfolio_variance,
             'Sharpe_ratio': portfolio_sharpe_ratio,
             'ID': df['ID'].iloc[0],
-            'Starting Day': df['date'].iloc[0]  # Insert starting day for each ID
+            'Date': df['date'].iloc[0]  # Insert starting day for each ID
         }
 
         for counter, symbol in enumerate(df.columns):
@@ -377,6 +377,7 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     final_df = pd.concat(result_dfs, ignore_index=True)
 
     return final_df
+	
 def get_max_sharpe_per_id(final_df):
     final_df_cleaned = final_df.dropna(subset=['Sharpe_ratio'])
     max_sharpe_rows = final_df_cleaned.loc[final_df_cleaned.groupby('ID')['Sharpe_ratio'].idxmax()]
@@ -780,7 +781,13 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
         optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate,trading_days)
         backtested_df =  get_max_sharpe_per_id(optimized_dfs)
         st.dataframe(backtested_df)
-	    
+	backtested_df.set_index('Date', inplace=True, drop=True)
+	price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
+	merged_backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
+	merged_backtested_df.columns = [col.replace('_Close', '_Price') for col in merged_backtested_df.columns]
+
+
+st.dataframe(merged_backtested_df)    
 # 	weight_columns = [col for col in merged_backtested_df.columns if col.endswith('_Weight')]
 # 	relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
 	
