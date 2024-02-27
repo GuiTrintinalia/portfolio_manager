@@ -790,7 +790,7 @@ if surfing_frontier:
     
     for weight_col in weight_columns:
 	    ticker = weight_col[:-len('_Weight')]
-	    close_col = f'{ticker}_Close'
+	    close_col = f'{ticker}_Price'
 	    if close_col in merged_backtested_df.columns:
 	    	relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
     
