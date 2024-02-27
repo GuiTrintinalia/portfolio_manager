@@ -789,12 +789,20 @@ def surfing_sharpe_optimize(df, initial_capital):
     for value in rel_weight_price:
         initial_quantities.append(initial_capital * value)
 
+    # Renomear as colunas das quantidades calculadas para cada ticker
+    tickers = df.columns[rel_quant_start_idx:]
+    initial_quantities_dict = {f"quantidades_{ticker}": quantity for ticker, quantity in zip(tickers, initial_quantities)}
+
+    # Exibir as quantidades iniciais
+    st.write("Quantidades Iniciais:")
+    st.write(initial_quantities_dict)
+
     # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
-    optimized_portfolio = pd.DataFrame(columns=['capital_profit_loss'] + df.columns[rel_quant_start_idx:].tolist())
+    optimized_portfolio = pd.DataFrame(columns=['capital_profit_loss'] + list(initial_quantities_dict.keys()))
 
     # Adicionar as quantidades na primeira linha ao DataFrame
     optimized_portfolio.loc[0, 'capital_profit_loss'] = initial_capital
-    optimized_portfolio.loc[0, df.columns[rel_quant_start_idx:]] = initial_quantities
+    optimized_portfolio.loc[0, list(initial_quantities_dict.keys())] = initial_quantities
 
     # Exibir o DataFrame resultante
     st.dataframe(optimized_portfolio)
