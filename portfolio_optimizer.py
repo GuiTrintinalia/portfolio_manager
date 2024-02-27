@@ -796,9 +796,9 @@ def surfing_sharpe_optimize(df, initial_capital):
 
         # Obter os preços dos ativos na linha atual e calcular as quantidades desejadas
         asset_prices = df.iloc[i, rel_quant_start_idx:].values.tolist()
-	st.write(asset_prices)
+        st.write(asset_prices)
         quantities = [(prev_initial_capital + prev_profit) * price for price in asset_prices]
-	st.write(quantities)
+        st.write(quantities)
         # Criar o problema de otimização
         prob = pulp.LpProblem(f"Optimize Portfolio for Row {i+1}", pulp.LpMaximize)
 
