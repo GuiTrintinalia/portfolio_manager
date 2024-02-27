@@ -328,19 +328,17 @@ def plot_efficient_frontier(simulated_portfolios, risk_free_rate,expected_sharpe
     st.markdown(f'Max Sharpe Ratio: **{max_sharpe_ratio_value:.2f}**')
     st.plotly_chart(frontier)
     
-
 def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     result_dfs = []
     for df in df_list:
-        cov_matrix = df.drop(columns=['ID']).pct_change().apply(lambda x: np.log(1 + x)).cov()
+        cov_matrix = df.drop(columns=['ID', 'date']).pct_change().apply(lambda x: np.log(1 + x)).cov()
         portfolio_returns = [] 
         portfolio_variance = [] 
         portfolio_weights = [] 
         portfolio_sharpe_ratio =[]
-        num_assets = len(df.columns)-1
-        # Assuming trading days in a year
+        num_assets = len(df.columns)-2  # Subtracting 'ID' and 'date' columns
 
-        annualized_returns = df.drop(columns=['ID']).pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
+        annualized_returns = df.drop(columns=['ID', 'date']).pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
         for portfolio in range(simulations):
             weights = np.random.random(num_assets)
             weights = weights/np.sum(weights)
@@ -361,12 +359,13 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
         data = {
             'Log Returns': portfolio_returns,
             'Volatility': portfolio_variance,
-            'Sharpe_ratio':portfolio_sharpe_ratio,
-            'ID': df['ID'].iloc[0]
+            'Sharpe_ratio': portfolio_sharpe_ratio,
+            'ID': df['ID'].iloc[0],
+            'Starting Day': df['date'].iloc[0]  # Insert starting day for each ID
         }
 
         for counter, symbol in enumerate(df.columns):
-                if symbol == 'ID':
+                if symbol == 'ID' or symbol == 'date':
                     continue
                 ticker_name = symbol.split('_')[0]  # Remove underscores from ticker name
                 data[ticker_name + '_Weight'] = [w[counter] for w in portfolio_weights]
@@ -378,7 +377,6 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     final_df = pd.concat(result_dfs, ignore_index=True)
 
     return final_df
-
 def get_max_sharpe_per_id(final_df):
     final_df_cleaned = final_df.dropna(subset=['Sharpe_ratio'])
     max_sharpe_rows = final_df_cleaned.loc[final_df_cleaned.groupby('ID')['Sharpe_ratio'].idxmax()]
@@ -763,7 +761,7 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
 
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
     st.subheader('Backtesting Strategy', divider='rainbow')
-    offset = st.number_input('Por favor, selecione o número de dias para pular', min_value=1, max_value=10000, step=5, value=5)
+    offset = st.number_input('Please select number of days to jump:', min_value=1, max_value=10000, step=5, value=5)
     dates_range = session_state.portfolio.index.unique()
     backtest_dfs = []
     df_id = 1
