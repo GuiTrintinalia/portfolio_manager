@@ -153,6 +153,10 @@ def fill_moving_avg(df, window_size, method='gap'):
             df[col] = df[col].fillna(method='bfill')
     return df
 
+def drop_nan_rows(df):
+    df_cleaned = df.dropna()
+    return df_cleaned
+	
 def get_latest_values(df, tickers):
     latest_values = {}
     for ticker in tickers:
@@ -376,9 +380,9 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     return final_df
 
 def get_max_sharpe_per_id(final_df):
-    max_sharpe_rows = final_df.loc[final_df.groupby('ID')['Sharpe_ratio'].idxmax()]
+    final_df_cleaned = final_df.dropna(subset=['Sharpe_ratio'])
+    max_sharpe_rows = final_df_cleaned.loc[final_df_cleaned.groupby('ID')['Sharpe_ratio'].idxmax()]
     return max_sharpe_rows
-
 
 ## Configuração da página e do título
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
@@ -681,7 +685,12 @@ if session_state.data is not None:
     st.dataframe(session_state.data)
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
     tickers  = set(tickers)
-    
+
+
+st.sidebar.markdown('**Missing Values**')    
+remove_nan = st.sidebar.button('Dropna')
+if remove_nan:
+    session_state.data = drop_nan_rows(session_state.data)
 
 st.subheader('Assets allocation', divider='rainbow')
 with st.expander("See explanation"):
@@ -737,7 +746,6 @@ if session_state.df is not None:
    close_price_data = [col for col  in session_state.data.columns if col.endswith('_Close')]
    session_state.portfolio  = session_state.data[close_price_data]
 
-
 if session_state.portfolio is not None and not session_state.portfolio.empty:
     trading_days = st.number_input(f'Please Select timeframe for returns', min_value=1, max_value=365, step=1, value = 252)
     resample_list = st.selectbox('Select resampling frequency:', options=resampling_options, index=resampling_options.index('A'))
@@ -755,26 +763,50 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
 
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
     st.subheader('Backtesting Strategy', divider='rainbow')
-    offset = st.number_input('Please Select days to jump', min_value=1, max_value=10000, step=7, value=7)
-    starting_date = session_state.portfolio.index.min()  
-    backtest_dfs = []  # List to store split DataFrames
-    df_id = 1  # Initialize DataFrame ID
+    offset = st.number_input('Por favor, selecione o número de dias para pular', min_value=1, max_value=10000, step=5, value=5)
+    dates_range = session_state.portfolio.index.unique()
+    backtest_dfs = []
+    df_id = 1
 
-    while starting_date <= session_state.portfolio.index.max():
-        offset_date = starting_date + pd.Timedelta(days=offset)
-        if offset_date <= session_state.portfolio.index.max():
-            split_df = session_state.portfolio.loc[starting_date:offset_date]
-        else:
-            pass
-        split_df['ID'] = df_id  # Add a new column for DataFrame ID
-        backtest_dfs.append(split_df)
-        starting_date = offset_date + pd.Timedelta(days=1)  # Move starting_date to the next day
-        df_id += 1  # Increment DataFrame ID for the next DataFrame
+    for i in range(0, len(dates_range), offset):
+    	starting_date = dates_range[i]  # Define a starting_date para a data inicial do intervalo
+    	offset_date = dates_range[min(i + offset - 1, len(dates_range) - 1)]  # Garante que offset_date não ultrapasse o final de dates_range
+    	split_df = session_state.portfolio.loc[starting_date:offset_date]
+    	split_df['ID'] = df_id
+    	split_df['date'] = offset_date
+    	backtest_dfs.append(split_df)
+    	df_id += 1
+    	starting_date = offset_date
+
     surfing_frontier = st.button('Wave Sharpe Ratio')
     if surfing_frontier:
         optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate,trading_days)
         backtested_df =  get_max_sharpe_per_id(optimized_dfs)
         st.dataframe(backtested_df)
+	    
+# 	weight_columns = [col for col in merged_backtested_df.columns if col.endswith('_Weight')]
+# 	relative_quantity_df = pd.DataFrame(index=merged_backtested_df.index)
+	
+# 	# Iterate over each weight column
+# 	for weight_col in weight_columns:
+# 	    # Extract the prefix from the weight column name
+# 	    ticker = weight_col[:-len('_Weight')]
+# 	    # Find the corresponding close column
+# 	    close_col = f'{ticker}_Close'
+# 	    # Check if the close column exists
+# 	    if close_col in merged_backtested_df.columns:
+# 	        # Calculate relative quantity by dividing weight by close
+# 	        relative_quantity_df[f'{ticker}_relative_quantity'] = merged_backtested_df[weight_col] / merged_backtested_df[close_col]
+
+# # Concatenate merged_backtested_df and relative_quantity_df along columns (axis=1)
+# merged_backtested_df = pd.concat([merged_backtested_df, relative_quantity_df], axis=1)
+	    
+	    
+	    
+	    
+	    
+	    
+	    st.dataframe(backtested_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
     st.subheader("Download section:", divider='rainbow')
