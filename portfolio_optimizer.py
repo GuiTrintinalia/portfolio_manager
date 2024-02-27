@@ -798,6 +798,65 @@ if surfing_frontier:
     st.dataframe(merged_backtested_df)
     st.write(merged_backtested_df.columns)
 
+def surfing_sharpe_optimize(df, initial_capital, tickers):
+    # Criar uma lista para armazenar os resultados de lucro
+    profit_loss = []
+
+    # Obter o número de ativos
+    num_assets = len(tickers)
+
+    # Índice do início das colunas de relative_quantity
+    rel_quant_start_idx = len(df.columns) - num_assets
+
+    # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
+    trading_df = pd.DataFrame(columns=tickers)
+
+    # Iterar sobre as linhas do DataFrame (começando da linha 2)
+    for i in range(1, len(df)):
+        # Obter o capital inicial e o lucro da linha anterior
+        prev_initial_capital = initial_capital
+        prev_profit = profit_loss[-1] if profit_loss else 0
+
+        # Obter as relações de peso/preço da linha atual e calcular as quantidades desejadas
+        rel_weight_price = df.iloc[i, rel_quant_start_idx:].values.tolist()
+        quantities = [(prev_initial_capital + prev_profit) * rel_weight_price[j] for j in range(num_assets)]
+
+        # Criar o problema de otimização
+        prob = pulp.LpProblem(f"Optimize Portfolio for Row {i+1}", pulp.LpMaximize)
+
+        # Variáveis de decisão
+        quantities_vars = [pulp.LpVariable(f"Q_{j}", lowBound=0) for j in range(num_assets)]
+
+        # Restrições (quantidades na linha atual)
+        for j in range(num_assets):
+            prob += quantities_vars[j] == quantities[j]
+
+        # Restrições (calcular o lucro)
+        profit = pulp.lpSum([(quantities_vars[j] - df.iloc[i - 1, rel_quant_start_idx + j]) * rel_weight_price[j] for j in range(num_assets)])
+
+        # Função objetivo (maximizar o lucro)
+        prob += prev_initial_capital + profit
+
+        # Resolve o problema de otimização
+        prob.solve()
+
+        # Atualizar o capital inicial para a próxima iteração
+        initial_capital = prev_initial_capital + pulp.value(profit)
+
+        # Adicionar as quantidades de compra e venda de cada ativo ao DataFrame
+        trading_df.loc[i, tickers] = [pulp.value(quantities_vars[j]) - df.iloc[i - 1, rel_quant_start_idx + j] for j in range(num_assets)]
+
+        # Adicionar o lucro à lista de resultados
+        profit_loss.append(initial_capital)
+
+    # Adicionar a lista de resultados ao DataFrame original
+    df['capital_profit_loss'] = [initial_capital] + profit_loss[:-1]
+
+    return trading_df
+
+trading_df = surfing_sharpe_optimize(merged_backtested_df,invested_cash,len(price_columns))
+st.dataframe(trading_df)
+
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
     st.subheader("Download section:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
