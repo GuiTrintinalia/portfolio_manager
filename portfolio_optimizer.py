@@ -777,18 +777,18 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     	starting_date = offset_date
 
 
-def surfing_sharpe_optimize(df, initial_capital, tickers):
+def surfing_sharpe_optimize(df, initial_capital):
     # Criar uma lista para armazenar os resultados de lucro
     profit_loss = []
 
     # Obter o número de ativos
-    num_assets = len(tickers)
+    num_assets = sum('_Price' in col for col in df.columns)
 
     # Índice do início das colunas de relative_quantity
     rel_quant_start_idx = len(df.columns) - num_assets
 
     # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
-    trading_df = pd.DataFrame(columns=tickers)
+    trading_df = pd.DataFrame(columns=df.columns[rel_quant_start_idx:])
 
     # Iterar sobre as linhas do DataFrame (começando da linha 2)
     for i in range(1, len(df)):
@@ -823,7 +823,7 @@ def surfing_sharpe_optimize(df, initial_capital, tickers):
         initial_capital = prev_initial_capital + pulp.value(profit)
 
         # Adicionar as quantidades de compra e venda de cada ativo ao DataFrame
-        trading_df.loc[i, tickers] = [pulp.value(quantities_vars[j]) - df.iloc[i - 1, rel_quant_start_idx + j] for j in range(num_assets)]
+        trading_df.loc[i, :] = [pulp.value(quantities_vars[j]) - df.iloc[i - 1, rel_quant_start_idx + j] for j in range(num_assets)]
 
         # Adicionar o lucro à lista de resultados
         profit_loss.append(initial_capital)
