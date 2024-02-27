@@ -161,11 +161,8 @@ def drop_nan_rows(df):
 def get_latest_values(df, tickers):
     latest_values = {}
     for ticker in tickers:
-
         latest_index = df[f"{ticker}_Close"].idxmax()
-
         latest_value = df.at[latest_index, f"{ticker}_Close"]
-
         latest_values[ticker] = latest_value
     
     return latest_values
@@ -726,7 +723,7 @@ if session_state.data is not None:
                 
             if allocated_shares == 1.0:
                 st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-                session_state.df = compute_investments(session_state.data, tickers, total_shares, available_cash)
+                session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
                 st.dataframe(session_state.df)    
 		    
             elif 0.0 < allocated_shares < 1.0:
