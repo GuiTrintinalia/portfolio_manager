@@ -786,7 +786,7 @@ def surfing_sharpe_optimize(df, initial_capital):
     rel_quant_start_idx = len(df.columns) - num_assets
 
     # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
-    optimized_portfolio = pd.DataFrame(columns=df.columns[rel_quant_start_idx:])
+    optimized_portfolio = pd.DataFrame(columns=['capital_profit_loss'] + df.columns[rel_quant_start_idx:].tolist())
 
     # Iterar sobre as linhas do DataFrame (começando da linha 2)
     for i in range(1, len(df)):
@@ -796,9 +796,8 @@ def surfing_sharpe_optimize(df, initial_capital):
 
         # Obter os preços dos ativos na linha atual e calcular as quantidades desejadas
         asset_prices = df.iloc[i, rel_quant_start_idx:].values.tolist()
-        st.write(asset_prices)
         quantities = [(prev_initial_capital + prev_profit) * price for price in asset_prices]
-        st.write(quantities)
+
         # Criar o problema de otimização
         prob = pulp.LpProblem(f"Optimize Portfolio for Row {i+1}", pulp.LpMaximize)
 
@@ -822,13 +821,14 @@ def surfing_sharpe_optimize(df, initial_capital):
         initial_capital = prev_initial_capital + pulp.value(profit)
 
         # Adicionar as quantidades de compra e venda de cada ativo ao DataFrame
-        optimized_portfolio.loc[i, :] = [pulp.value(quantities_vars[j]) - df.iloc[i - 1, rel_quant_start_idx + j] for j in range(num_assets)]
+        trading_quantities = [pulp.value(quantities_vars[j]) - df.iloc[i - 1, rel_quant_start_idx + j] for j in range(num_assets)]
+        optimized_portfolio.loc[i, 'capital_profit_loss'] = initial_capital
+        optimized_portfolio.loc[i, df.columns[rel_quant_start_idx:]] = trading_quantities
 
         # Adicionar o lucro à lista de resultados
         profit_loss.append(initial_capital)
 
-    # Adicionar a lista de resultados ao DataFrame original
-    df['capital_profit_loss'] = [initial_capital] + profit_loss[:-1]
+    return optimized_portfolio
 
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
