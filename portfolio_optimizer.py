@@ -823,7 +823,9 @@ if surfing_frontier:
     
     for weight_col in weight_columns:
 	    ticker = weight_col[:-len('_Weight')]
+	    st.write(ticker)
 	    price_col = f'{ticker}_Price'
+	    st.write(price_col)
 	    if price_col in backtested_df.columns:
 	    	rel_weight_price_df[f'{ticker}_rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
     
