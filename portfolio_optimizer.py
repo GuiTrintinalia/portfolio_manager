@@ -788,7 +788,7 @@ def surfing_sharpe_optimize(df, initial_capital):
     # Calcular as quantidades na primeira linha
     for value in rel_weight_price:
         initial_quantities.append(initial_capital * value)
-	st.write(initial_quantities)
+        st.write(initial_capital*value)
 
     # Renomear as colunas das quantidades calculadas para cada ticker
     tickers = df.columns[rel_quant_start_idx:]
