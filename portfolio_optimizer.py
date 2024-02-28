@@ -788,14 +788,11 @@ def surfing_sharpe_optimize(df, initial_capital):
     # Calcular as quantidades na primeira linha
     for value in rel_weight_price:
         initial_quantities.append(initial_capital * value)
+	st.write(initial_quantities)
 
     # Renomear as colunas das quantidades calculadas para cada ticker
     tickers = df.columns[rel_quant_start_idx:]
     initial_quantities_dict = {f"quantidades_{ticker.split('_rel')[0]}": quantity for ticker, quantity in zip(tickers, initial_quantities)}
-
-    # Exibir as quantidades iniciais
-    st.write("Quantidades Iniciais:")
-    st.write(initial_quantities_dict)
 
     # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
     optimized_portfolio = pd.DataFrame(columns=['capital_profit_loss'] + list(initial_quantities_dict.keys()))
@@ -806,7 +803,6 @@ def surfing_sharpe_optimize(df, initial_capital):
 
     # Exibir o DataFrame resultante
     st.dataframe(optimized_portfolio)
-
 
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
