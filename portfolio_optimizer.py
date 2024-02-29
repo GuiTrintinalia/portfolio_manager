@@ -723,8 +723,7 @@ if session_state.data is not None:
                 
             if allocated_shares == 1.0:
                 st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-                session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-                st.dataframe(session_state.df)    
+                session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash) 
 		    
             elif 0.0 < allocated_shares < 1.0:
                 st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
@@ -836,5 +835,6 @@ if session_state.df is not None or session_state.data is not None or session_sta
         download_link = download_dfs(session_state, download_option)
         if download_link:
             st.markdown(download_link, unsafe_allow_html=True)
-            
+
+
             
