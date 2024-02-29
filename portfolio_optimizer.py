@@ -803,7 +803,6 @@ def surfing_sharpe_optimize(df, initial_capital):
     # Exibir o DataFrame resultante
     st.dataframe(optimized_portfolio)
 
-
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
