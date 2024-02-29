@@ -775,33 +775,17 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
 
 
 def surfing_sharpe_optimize(df, initial_capital):
-    # Criar uma lista para armazenar as quantidades na primeira linha
-    initial_quantities = []
-
-    # Índice do início das colunas de relative_quantity
+    # Obter os preços relativos em todas as linhas
     rel_quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_Price')])
+    rel_weight_prices = df.iloc[:, rel_quant_start_idx:]
 
-    # Obter os preços e pesos relativos na primeira linha
-    rel_weight_price = df.iloc[0, rel_quant_start_idx:].values.tolist()
+    # Multiplicar os preços relativos pelo capital inicial
+    optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
 
-    # Calcular as quantidades na primeira linha
-    for value in rel_weight_price:
-        initial_quantities.append(initial_capital * value)
-        st.write(initial_capital*value)
+    # Adicionar uma coluna para o lucro ou prejuízo de capital
+    optimized_portfolio.insert(0, 'capital_profit_loss', initial_capital)
 
-    # Renomear as colunas das quantidades calculadas para cada ticker
-    tickers = df.columns[rel_quant_start_idx:]
-    initial_quantities_dict = {f"quantidades_{ticker.split('_rel')[0]}": quantity for ticker, quantity in zip(tickers, initial_quantities)}
-
-    # Criar DataFrame para armazenar as quantidades de compra e venda de cada ativo
-    optimized_portfolio = pd.DataFrame(columns=['capital_profit_loss'] + list(initial_quantities_dict.keys()))
-
-    # Adicionar as quantidades na primeira linha ao DataFrame
-    optimized_portfolio.loc[0, 'capital_profit_loss'] = initial_capital
-    optimized_portfolio.loc[0, list(initial_quantities_dict.keys())] = initial_quantities
-
-    # Exibir o DataFrame resultante
-    st.dataframe(optimized_portfolio)
+    return optimized_portfolio
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
