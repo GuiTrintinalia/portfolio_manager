@@ -831,7 +831,7 @@ if session_state.df is not None or session_state.data is not None or session_sta
     if download_option in mapping:
         download_button = st.button('Download')
         if download_button:
-            download_link = download_dfs(session_state, mapping, mapping[download_option])
+            download_link = download_dfs(session_state, mapping[download_option], mapping)
             if download_link:
                 st.markdown(download_link, unsafe_allow_html=True)
     else:
