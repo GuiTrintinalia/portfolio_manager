@@ -784,9 +784,15 @@ def surfing_sharpe_optimize(df, initial_capital, price_df):
     optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
     optimized_portfolio = optimized_portfolio.diff().fillna(0)
     price_df = price_df.diff().fillna(0)
-    profit_loss = optimized_portfolio * price_df
+    profit_loss = optimized_portfolio.values * price_df.values
+    
     st.dataframe(price_df)
     st.dataframe(profit_loss)
+
+    # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
+    profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
+    profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
+
     # Adicionar uma coluna para o lucro ou prejuízo de capital
     return optimized_portfolio
 
