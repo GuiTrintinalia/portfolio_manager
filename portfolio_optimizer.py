@@ -791,13 +791,11 @@ if surfing_frontier:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
     backtested_df = get_max_sharpe_per_id(optimized_dfs)
     backtested_df.set_index('Date', inplace=True, drop=True)
-    price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
-    price_df = backtested_df[price_columns]
-    price_df = price_df.diff.fillna(0)
-	
+    price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]	
     backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
     backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
-   
+    price_columns = [cols for cols in backtested_df.columns if cols.endswith('_Price')]
+    price_df = backtested_df[price_columns]
     weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
     rel_weight_price_df = pd.DataFrame(index=backtested_df.index)
     
