@@ -821,7 +821,7 @@ if surfing_frontier:
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
     st.subheader("Download section:", divider='rainbow')
-    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimization' = backtest_df}
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'backtest_df':'optimization'}
     download_option = st.selectbox("Select data to download:", list(mapping.keys()))
     download_button = st.button('Download')
     if download_button:
