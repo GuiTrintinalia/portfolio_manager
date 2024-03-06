@@ -819,7 +819,7 @@ if surfing_frontier:
     # optimized_df = surfing_sharpe_optimize(session_state_st.backtested_df,invested_cash, price_df)
     # st.dataframe(optimized_df)
 
-if any([session_state.df, session_state.data, session_state.portfolio, session_state.backtest, session_state.backtested_df]):
+if any(obj is not None for obj in [session_state.df, session_state.data, session_state.portfolio, session_state.backtest, session_state.backtested_df]):
     st.subheader("Download section:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'backtested_df':'optimization'}
     download_option = st.selectbox("Select data to download:", list(mapping.keys()))
