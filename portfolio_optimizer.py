@@ -818,10 +818,19 @@ if surfing_frontier:
     session_state.optimized_data = backtested_df.copy()
     # optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
     st.dataframe(session_state.optimized_data)
+    download_optimum = st.button('Download Optimized Data as CSV')
+    if download_optimum:
+        csv = session_state.optimized_data.to_csv(index=False)
+        b64 = base64.b64encode(csv.encode()).decode()  # codificar para base64
+        href = f'<a href="data:file/csv;base64,{b64}" download="optimized_data.csv">Clique para baixar</a>'
+        st.markdown(href, unsafe_allow_html=True)
+else:
+    st.error(f"The column '{price_col}' is not found in the DataFrame.")
+
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
-    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
     download_option = st.selectbox("Select for Download:", list(mapping.keys()))
     if download_option in mapping:
         download_button = st.button('Download')
