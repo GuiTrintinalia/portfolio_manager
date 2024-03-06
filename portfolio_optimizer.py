@@ -783,6 +783,7 @@ def surfing_sharpe_optimize(df, initial_capital, price_df):
     optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
     optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
     optimized_portfolio = optimized_portfolio.diff().fillna(0)
+    st.dataframe(price_df)
     # Adicionar uma coluna para o lucro ou prejuízo de capital
     return optimized_portfolio
 
