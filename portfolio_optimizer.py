@@ -819,8 +819,7 @@ if surfing_frontier:
     # optimized_df = surfing_sharpe_optimize(session_state.backtested_df,invested_cash, price_df)
     # st.dataframe(optimized_df)
 
-if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or
-session_state.optimized_data is not None:
+if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
 
     st.subheader("Download section:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimization':'optimized_data'}
