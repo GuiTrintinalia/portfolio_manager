@@ -393,7 +393,7 @@ class SessionState:
 
 @st.cache(allow_output_mutation=True)
 def get_session():
-    return SessionState(df=pd.DataFrame(), data=pd.DataFrame(), portfolio=pd.DataFrame(), backtest =pd.DataFrame(), backtested_df=pd.DataFrame())
+    return SessionState(df=pd.DataFrame(), data=pd.DataFrame(), portfolio=pd.DataFrame(), backtest =pd.DataFrame(), optimized_data =pd.DataFrame())
 session_state = get_session()
 
 st.subheader('Pick your assets',divider='rainbow')
@@ -814,14 +814,14 @@ if surfing_frontier:
 	    price_col = f'{ticker}_Price'
 	    if price_col in backtested_df.columns:
 	    	rel_weight_price_df[f'{ticker}_rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
-    session_state_st.backtested_df = pd.concat([backtested_df, rel_weight_price_df], axis=1)
-    st.dataframe(session_state_st.backtested_df)
+    backtested_df = pd.concat([backtested_df, rel_weight_price_df], axis=1)
+    session_state_st.optimized_data = backtested_df
     # optimized_df = surfing_sharpe_optimize(session_state.backtested_df,invested_cash, price_df)
     # st.dataframe(optimized_df)
 
 if any(obj is not None for obj in [session_state.df, session_state.data, session_state.portfolio, session_state.backtest, session_state.backtested_df]):
     st.subheader("Download section:", divider='rainbow')
-    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'backtested_df':'optimization'}
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimization':'optimized_data'}
     download_option = st.selectbox("Select data to download:", list(mapping.keys()))
     download_button = st.button('Download')
     if download_button:
