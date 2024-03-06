@@ -820,9 +820,9 @@ if surfing_frontier:
     st.dataframe(session_state.optimized_data)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
-    st.subheader("Seção de Download:", divider='rainbow')
-    mapping = {'ativos': 'data', 'alocação': 'df', 'carteira': 'portfolio', 'backtest': 'backtest', 'dados_otimizados':'optimized_data'}
-    download_option = st.selectbox("Selecione os dados para download:", list(mapping.keys()))
+    st.subheader("Downloads:", divider='rainbow')
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
+    download_option = st.selectbox("Select for Download:", list(mapping.keys()))
     if download_option in mapping:
         download_button = st.button('Download')
         if download_button:
