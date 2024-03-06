@@ -776,19 +776,14 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
 
 def surfing_sharpe_optimize(df, initial_capital, price_df):
     # Obter os preços relativos em todas as linhas
-    rel_quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_Price')])
-    rel_weight_prices = df.iloc[:, rel_quant_start_idx:]
+    quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
+    rel_weight_prices = df.iloc[:, quant_start_idx:]
 
     # Multiplicar os preços relativos pelo capital inicial
     optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
-    optimized_portfolio.columns = ['quantity' + str(i) for i in range(1, len(optimized_portfolio.columns) + 1)]
-    optimized_portfolio.diff(inplace = True).fillna(0)
+    optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
+    optimized_portfolio = optimized_portfolio.diff().fillna(0)
     # Adicionar uma coluna para o lucro ou prejuízo de capital
-    optimized_portfolio.insert(0, 'capital_profit_loss', initial_capital)
-
-
-
-
     return optimized_portfolio
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
