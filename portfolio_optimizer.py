@@ -824,9 +824,6 @@ if surfing_frontier:
         b64 = base64.b64encode(csv.encode()).decode()  # codificar para base64
         href = f'<a href="data:file/csv;base64,{b64}" download="optimized_data.csv">Clique para baixar</a>'
         st.markdown(href, unsafe_allow_html=True)
-else:
-    st.error(f"The column '{price_col}' is not found in the DataFrame.")
-
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
