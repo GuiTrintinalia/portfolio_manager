@@ -95,8 +95,7 @@ def upload_file(file):
     return df
 
 
-def download_dfs(session_state, download_option):
-    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
+def download_dfs(session_state, download_option, mapping):
     attribute_name = mapping.get(download_option)
     if attribute_name is not None:
         data_attribute = getattr(session_state, attribute_name)
@@ -827,12 +826,12 @@ if surfing_frontier:
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
-    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest'}
+    mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
     download_option = st.selectbox("Select for Download:", list(mapping.keys()))
     if download_option in mapping:
         download_button = st.button('Download')
         if download_button:
-            download_link = download_dfs(session_state, mapping[download_option])
+            download_link = download_dfs(session_state, mapping, mapping[download_option])
             if download_link:
                 st.markdown(download_link, unsafe_allow_html=True)
     else:
