@@ -774,16 +774,20 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     	starting_date = offset_date
 
 
-def surfing_sharpe_optimize(df, initial_capital):
+def surfing_sharpe_optimize(df, initial_capital, price_df):
     # Obter os preços relativos em todas as linhas
     rel_quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_Price')])
     rel_weight_prices = df.iloc[:, rel_quant_start_idx:]
 
     # Multiplicar os preços relativos pelo capital inicial
     optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
-
+    optimized_portfolio.columns = ['quantity' + str(i) for i in range(1, len(optimized_portfolio.columns) + 1)]
+    optimized_portfolio.diff(inplace = True).fillna(0)
     # Adicionar uma coluna para o lucro ou prejuízo de capital
     optimized_portfolio.insert(0, 'capital_profit_loss', initial_capital)
+
+
+
 
     return optimized_portfolio
 
@@ -793,6 +797,9 @@ if surfing_frontier:
     backtested_df = get_max_sharpe_per_id(optimized_dfs)
     backtested_df.set_index('Date', inplace=True, drop=True)
     price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]
+    price_df = backtested_df[price_columns]
+    price_df = price_df.diff.fillna(0)
+	
     backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
     backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
    
@@ -806,7 +813,7 @@ if surfing_frontier:
 	    	rel_weight_price_df[f'{ticker}_rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
     backtested_df = pd.concat([backtested_df, rel_weight_price_df], axis=1)
     st.dataframe(backtested_df)
-    optimized_df = surfing_sharpe_optimize(backtested_df,invested_cash)
+    optimized_df = surfing_sharpe_optimize(backtested_df,invested_cash, price_df)
     st.dataframe(optimized_df)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None:
