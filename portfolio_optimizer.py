@@ -816,7 +816,7 @@ if surfing_frontier:
 	    	rel_weight_price_df[f'{ticker}_rel_weight_price'] = backtested_df[weight_col] / backtested_df[price_col]
     backtested_df = pd.concat([backtested_df, rel_weight_price_df], axis=1)
     session_state.optimized_data = backtested_df.copy()
-    # optimized_df = surfing_sharpe_optimize(session_state.backtested_df,invested_cash, price_df)
+    # optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
     st.dataframe(session_state.optimized_data)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
