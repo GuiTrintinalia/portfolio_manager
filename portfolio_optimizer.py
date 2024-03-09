@@ -768,9 +768,9 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     price_df.diff(inplace = True).fillna(0)
     
     weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
-    for i in range(0, weight_columns.shape[1]
-    initial_quantities = initial_capital * weight_columns[i] / price_df[i:0]
-    st.dataframe(initial_quantities)
+    for i in range(0, weight_columns.shape[1]):
+        initial_quantities = initial_capital * weight_columns[i] / price_df[i:0]
+        st.dataframe(initial_quantities)
     # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
     # optimized_portfolio = optimized_portfolio.diff().fillna(0)
     # price_df = price_df.diff().fillna(0)
@@ -834,4 +834,3 @@ if session_state.df is not None or session_state.data is not None or session_sta
                 st.markdown(download_link, unsafe_allow_html=True)
     else:
         st.error("Opção de download inválida.")
-
