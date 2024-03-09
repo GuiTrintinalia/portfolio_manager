@@ -765,7 +765,7 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
 
     price_columns = [cols for cols in df.columns if cols.endswith('_Price')]
     price_df = df[price_columns]
-    price_df = price_df.diff().fillna(0)
+    price_df.diff(inplace = True).fillna(0)
     
     weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
     for i in range(0, weight_columns.shape[1]):
