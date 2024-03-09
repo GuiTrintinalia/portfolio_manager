@@ -816,7 +816,7 @@ if surfing_frontier:
     backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
     
     session_state.optimized_data = backtested_df.copy()
-    optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash)
+    optimized_df = surfing_sharpe_optimize(session_state.optimized_data,invested_cash)
     session_state.optimized_data = backtested_df.copy()
     # optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
     st.dataframe(session_state.optimized_data)
