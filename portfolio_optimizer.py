@@ -763,15 +763,16 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
 
 def surfing_sharpe_optimize(df, initial_capital=100000):
 
-    price_columns = [cols for cols in df.columns if cols.endswith('_Price')]
-    price_df = df[price_columns]
-    price_df = price_df.diff().fillna(0)
+    price_columns = [col for col in df.columns if col.endswith('_Price')]
+    price_df = df[price_columns].diff().fillna(0)
     
-    weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
-    for i in range(0, weight_columns.shape[1]):
-        initial_quantities = initial_capital * weight_columns[i] / price_df[i:0]
-        st.dataframe(initial_quantities)
-        st.dataframe(initial_quantities.shape)
+    weight_columns = [col for col in df.columns if col.endswith('_Weight')]
+    initial_quantities = pd.DataFrame()
+    for col in weight_columns:
+        idx = weight_columns.index(col)
+        initial_quantities[col] = initial_capital * df[col].iloc[0] / price_df.iloc[0, idx]
+        
+    return initial_quantities
     # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
     # optimized_portfolio = optimized_portfolio.diff().fillna(0)
     # price_df = price_df.diff().fillna(0)
