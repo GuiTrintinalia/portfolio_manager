@@ -13,7 +13,6 @@ from datetime import datetime, timedelta, date
 from itertools import combinations
 from multiprocessing import Pool
 import time
-import riskfolio as rp
 import yfinance  as yf
 import plotly.graph_objects as go
 import io
@@ -762,7 +761,7 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
         df_id += 1
         starting_date = offset_date
 
-def surfing_sharpe_optimize(df, initial_capital, price_df):
+def surfing_sharpe_optimize(df, initial_capital=100000):
 
     price_columns = [cols for cols in df.columns if cols.endswith('_Price')]
     price_df = df[price_columns]
@@ -787,25 +786,25 @@ def surfing_sharpe_optimize(df, initial_capital, price_df):
     # # Adicionar uma coluna para o lucro ou prejuízo de capital
     # return optimized_portfolio
 
-    quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
-    rel_weight_prices = df.iloc[:, quant_start_idx:]
+    # quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
+    # rel_weight_prices = df.iloc[:, quant_start_idx:]
 
     # Multiplicar os preços relativos pelo capital inicial
-    optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
-    optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
-    optimized_portfolio = optimized_portfolio.diff().fillna(0)
-    price_df = price_df.diff().fillna(0)
-    profit_loss = optimized_portfolio.values * price_df.values
+    # optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
+    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
+    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
+    # price_df = price_df.diff().fillna(0)
+    # profit_loss = optimized_portfolio.values * price_df.values
     
-    st.dataframe(price_df)
-    st.dataframe(profit_loss)
+    # st.dataframe(price_df)
+    # st.dataframe(profit_loss)
 
     # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
-    profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
-    profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
+    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
+    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
 
     # Adicionar uma coluna para o lucro ou prejuízo de capital
-    return optimized_portfolio
+    # return optimized_portfolio
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
@@ -815,25 +814,13 @@ if surfing_frontier:
     price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]	
     backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
     backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
-    price_columns = [cols for cols in backtested_df.columns if cols.endswith('_Price')]
-    price_df = backtested_df[price_columns]
-
-    price_df.diff(inplace = True).fillna(0) 
+    
     session_state.optimized_data = backtested_df.copy()
-    optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
-
-    weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
-    rel_weight_price_df = pd.DataFrame(index=backtested_df.index)
+    optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash)
     session_state.optimized_data = backtested_df.copy()
     # optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
-
     st.dataframe(session_state.optimized_data)
-    download_optimum = st.button('Download Optimized Data as CSV')
-    if download_optimum:
-        csv = session_state.optimized_data.to_csv(index=False)
-        b64 = base64.b64encode(csv.encode()).decode()  # codificar para base64
-        href = f'<a href="data:file/csv;base64,{b64}" download="optimized_data.csv">Clique para baixar</a>'
-        st.markdown(href, unsafe_allow_html=True)
+
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
@@ -847,3 +834,4 @@ if session_state.df is not None or session_state.data is not None or session_sta
                 st.markdown(download_link, unsafe_allow_html=True)
     else:
         st.error("Opção de download inválida.")
+
