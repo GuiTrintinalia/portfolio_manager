@@ -771,6 +771,7 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     for i in range(0, weight_columns.shape[1]):
         initial_quantities = initial_capital * weight_columns[i] / price_df[i:0]
         st.dataframe(initial_quantities)
+        st.dataframe(initial_quantities.shape)
     # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
     # optimized_portfolio = optimized_portfolio.diff().fillna(0)
     # price_df = price_df.diff().fillna(0)
