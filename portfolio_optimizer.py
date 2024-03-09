@@ -769,8 +769,9 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     weight_columns = [col for col in df.columns if col.endswith('_Weight')]
     initial_quantities = pd.DataFrame()
     for col in weight_columns:
+        prefix = col.split('_')[0]  # Extracting the prefix before '_Weight'
         idx = weight_columns.index(col)
-        initial_quantities[col] = initial_capital * df[col].iloc[0] / price_df.iloc[0, idx]
+        initial_quantities[prefix] = initial_capital * df[col].iloc[0] / price_df.iloc[0, idx]
         
     return initial_quantities
     # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
