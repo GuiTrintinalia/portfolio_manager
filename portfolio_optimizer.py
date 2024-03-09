@@ -22,14 +22,6 @@ import pyarrow.parquet as pq
 import base64
 import pulp
 
-
-
-# from pypfopt import EfficientFrontier
-# from pypfopt import risk_models
-# from pypfopt import expected_returns
-# from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
-
-
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
     candles = []
@@ -732,8 +724,6 @@ if session_state.data is not None:
     except NameError:
         st.write("Please download tickers before continuing.")
         
- 
-        
 if session_state.df is not None:
    st.dataframe(session_state.df)
    st.subheader('Optimization', divider='rainbow')
@@ -761,20 +751,42 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
     dates_range = session_state.portfolio.index.unique()
     backtest_dfs = []
     df_id = 1
-
+    
     for i in range(0, len(dates_range), offset):
-    	starting_date = dates_range[i]  # Define a starting_date para a data inicial do intervalo
-    	offset_date = dates_range[min(i + offset - 1, len(dates_range) - 1)]  # Garante que offset_date não ultrapasse o final de dates_range
-    	split_df = session_state.portfolio.loc[starting_date:offset_date]
-    	split_df['ID'] = df_id
-    	split_df['date'] = offset_date
-    	backtest_dfs.append(split_df)
-    	df_id += 1
-    	starting_date = offset_date
-
+        starting_date = dates_range[i]  # Define a starting_date para a data inicial do intervalo
+        offset_date = dates_range[min(i + offset - 1, len(dates_range) - 1)]  # Garante que offset_date não ultrapasse o final de dates_range
+        split_df = session_state.portfolio.loc[starting_date:offset_date]
+        split_df['ID'] = df_id
+        split_df['date'] = offset_date
+        backtest_dfs.append(split_df)
+        df_id += 1
+        starting_date = offset_date
 
 def surfing_sharpe_optimize(df, initial_capital, price_df):
-    # Obter os preços relativos em todas as linhas
+
+    price_columns = [cols for cols in df.columns if cols.endswith('_Price')]
+    price_df = df[price_columns]
+    price_df.diff(inplace = True).fillna(0)
+    
+    weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
+    for i in range(0, weight_columns.shape[1]
+    initial_quantities = initial_capital * weight_columns[i] / price_df[i:0]
+    st.dataframe(initial_quantities)
+    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
+    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
+    # price_df = price_df.diff().fillna(0)
+    # profit_loss = optimized_portfolio.values * price_df.values
+    
+    # st.dataframe(price_df)
+    # st.dataframe(profit_loss)
+
+    # # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
+    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
+    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
+
+    # # Adicionar uma coluna para o lucro ou prejuízo de capital
+    # return optimized_portfolio
+
     quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
     rel_weight_prices = df.iloc[:, quant_start_idx:]
 
@@ -805,10 +817,16 @@ if surfing_frontier:
     backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
     price_columns = [cols for cols in backtested_df.columns if cols.endswith('_Price')]
     price_df = backtested_df[price_columns]
+
+    price_df.diff(inplace = True).fillna(0) 
+    session_state.optimized_data = backtested_df.copy()
+    optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
+
     weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
     rel_weight_price_df = pd.DataFrame(index=backtested_df.index)
     session_state.optimized_data = backtested_df.copy()
     # optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
+
     st.dataframe(session_state.optimized_data)
     download_optimum = st.button('Download Optimized Data as CSV')
     if download_optimum:
@@ -829,5 +847,3 @@ if session_state.df is not None or session_state.data is not None or session_sta
                 st.markdown(download_link, unsafe_allow_html=True)
     else:
         st.error("Opção de download inválida.")
-
-            
