@@ -20,6 +20,8 @@ from io import BytesIO
 import pyarrow.parquet as pq
 import base64
 import pulp
+from pulp import LpMaximize, LpProblem, LpVariable
+
 
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
@@ -55,6 +57,14 @@ def candlestick_chart(dfs, selected_var):
 
     fig = go.Figure(data=traces, layout=layout)
     return fig
+
+
+def style_dataframe_with_blue(df):
+    styled_df = df.style.set_table_styles([
+        {'selector': 'th', 'props': [('background-color', 'blue'), ('color', 'white')]},
+        {'selector': 'td', 'props': [('border', '1px solid blue'), ('color', 'blue')]}
+    ])
+    return styled_df
 
 def download_data(data, period='1y'):
     dfs = []
@@ -764,14 +774,19 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
 def surfing_sharpe_optimize(df, initial_capital=100000):
 
     weight_columns = [col for col in df.columns if col.endswith('_Weight')]
-    initial_quantities = pd.DataFrame()
+    initial_quantities_data = {}  # Dicionário temporário para armazenar os resultados
     for col in weight_columns:
         prefix = col.split('_')[0]  # Extracting the prefix before '_Weight'
         price_col = prefix + '_Price'
         if price_col in df.columns:
             idx = df.columns.get_loc(price_col)  # Getting the index of the price column
-            initial_quantities[prefix+'_Quantity'] = initial_capital * df[col].iloc[0] / df.iloc[0, idx]
+            weight = df[col].iloc[0]
+            price = df.iloc[0, idx]
+            initial_quantity = initial_capital * weight / price
+            initial_quantities_data[prefix+'_Quantity'] = initial_quantity
     
+    initial_quantities = pd.DataFrame([initial_quantities_data])  # Criando o DataFrame após o loop
+
     st.dataframe(initial_quantities)
     # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
     # optimized_portfolio = optimized_portfolio.diff().fillna(0)
@@ -816,14 +831,91 @@ if surfing_frontier:
     price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]	
     backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
     backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
+    st.dataframe(backtested_df)
     
-    session_state.optimized_data = backtested_df.copy()
-    optimized_df = surfing_sharpe_optimize(session_state.optimized_data,invested_cash)
-    session_state.optimized_data = backtested_df.copy()
-    # optimized_df = surfing_sharpe_optimize(session_state.optimized_dat,invested_cash, price_df)
-    st.dataframe(session_state.optimized_data)
+    optimize_df  = backtested_df.copy()
+
+    price_columns = [col for col in optimize_df.columns if col.endswith('_Price')]
+    weight_columns = [col for col in optimize_df.columns if col.endswith('_Weight')]
+
+    # Creating a new data structure with prices, weights, dates, and IDs for each asset on each date
+    data = {'Asset': [], 'Price': [], 'Weight': [], 'Date': [], 'ID': []}
+    for date, row in optimize_df.iterrows():
+        for price_col, weight_col in zip(price_columns, weight_columns):
+            asset = price_col.replace('_Price', '')
+            data['Asset'].append(asset)
+            data['Price'].append(row[price_col])
+            data['Weight'].append(row[weight_col])
+            data['Date'].append(date)
+            data['ID'].append(row['ID'])   # Append the ID for each row
+
+    # Creating a new DataFrame
 
 
+    optimize_df = pd.DataFrame(data)
+
+    optimize_df.loc[optimize_df['ID'] == 1, 'Quantity'] = invested_cash * optimize_df.loc[optimize_df['ID'] == 1, 'Weight'] / optimize_df.loc[optimize_df['ID'] == 1, 'Price']
+    
+
+    optimize_df = optimize_df.sort_values(by=['Asset', 'Date'])
+
+    for asset in optimize_df['Asset'].unique():
+        asset_rows = optimize_df[optimize_df['Asset'] == asset]
+        for i in range(1, len(asset_rows)):
+            current_weight = asset_rows.iloc[i]['Weight']
+            previous_weight = asset_rows.iloc[i - 1]['Weight']
+            if current_weight > previous_weight:
+                optimize_df.at[asset_rows.index[i], 'Operation'] = 'buy'
+            else:
+                optimize_df.at[asset_rows.index[i], 'Operation'] = 'sell'
+    
+    
+    session_state.optimized_data = optimize_df.copy()
+    
+    
+if session_state.optimized_data is not None:
+    optimize_df = session_state.optimized_data  # Assuming optimize_df is defined somewhere
+    unique_assets = optimize_df['Asset'].unique()
+    n = len(unique_assets)
+    variables_price = []
+    variables_weight = []
+    variables_quantity = []
+    max_len = 0
+    
+    for asset in unique_assets:
+        mask = (optimize_df['Asset'] == asset)
+        prices = optimize_df.loc[mask, 'Price'].tolist()
+        weights = optimize_df.loc[mask, 'Weight'].tolist()
+        quantities = optimize_df.loc[mask, 'Quantity'].tolist()
+        
+        max_len = max(max_len, len(prices), len(weights), len(quantities))
+        variables_price.append(prices + [None] * (max_len - len(prices)))
+        variables_weight.append(weights + [None] * (max_len - len(weights)))
+        variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
+
+    df = pd.DataFrame({
+        'Asset': unique_assets,
+        'P1': [item[0] for item in variables_price],
+        'P2': [item[1] for item in variables_price],
+        'W1': [item[0] for item in variables_weight],
+        'W2': [item[1] for item in variables_weight],
+        'Q1': [item[0] for item in variables_quantity],
+ 
+    })
+    
+    # Comparing the weights and adding 'Side' column
+    df['Side'] = df.apply(lambda row: "Buy" if row['W2'] > row['W1'] else "Sell", axis=1)
+    df['Q2'] =  invested_cash * df['W2'] / df['P2'] 
+    
+    
+
+    df['Balance'] = df.apply(lambda row: abs(row['Q2'] - row['Q1']) * (row['P2'] - row['P1']) if row['Side'] == 'Sell' and row['P2'] > row['P1'] else 
+                                         - abs((row['Q2'] - row['Q1']) * (row['P2'] - row['P1'])) if row['Side'] == 'Sell' and row['P2'] <= row['P1'] else
+                                         - abs(row['Q2'] - row['Q1']) * row['P2'] , axis=1)
+    df['Result'] = df['Balance'].cumsum()
+    
+    st.dataframe(df)
+        
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
