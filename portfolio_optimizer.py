@@ -871,50 +871,48 @@ if surfing_frontier:
     
     
     session_state.optimized_data = optimize_df.copy()
+    st.dataframe(session_state.optimized_data)
     
+# if session_state.optimized_data is not None:
+#     optimize_df = session_state.optimized_data  # Assuming optimize_df is defined somewhere
+#     unique_assets = optimize_df['Asset'].unique()
+#     n = len(unique_assets)
+#     variables_price = []
+#     variables_weight = []
+#     variables_quantity = []
+#     max_len = 0
     
-if session_state.optimized_data is not None:
-    optimize_df = session_state.optimized_data  # Assuming optimize_df is defined somewhere
-    unique_assets = optimize_df['Asset'].unique()
-    n = len(unique_assets)
-    variables_price = []
-    variables_weight = []
-    variables_quantity = []
-    max_len = 0
-    
-    for asset in unique_assets:
-        mask = (optimize_df['Asset'] == asset)
-        prices = optimize_df.loc[mask, 'Price'].tolist()
-        weights = optimize_df.loc[mask, 'Weight'].tolist()
-        quantities = optimize_df.loc[mask, 'Quantity'].tolist()
+#     for asset in unique_assets:
+#         mask = (optimize_df['Asset'] == asset)
+#         prices = optimize_df.loc[mask, 'Price'].tolist()
+#         weights = optimize_df.loc[mask, 'Weight'].tolist()
+#         quantities = optimize_df.loc[mask, 'Quantity'].tolist()
         
-        max_len = max(max_len, len(prices), len(weights), len(quantities))
-        variables_price.append(prices + [None] * (max_len - len(prices)))
-        variables_weight.append(weights + [None] * (max_len - len(weights)))
-        variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
+#         max_len = max(max_len, len(prices), len(weights), len(quantities))
+#         variables_price.append(prices + [None] * (max_len - len(prices)))
+#         variables_weight.append(weights + [None] * (max_len - len(weights)))
+#         variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
 
-    df = pd.DataFrame({
-        'Asset': unique_assets,
-        'P1': [item[0] for item in variables_price],
-        'P2': [item[1] for item in variables_price],
-        'W1': [item[0] for item in variables_weight],
-        'W2': [item[1] for item in variables_weight],
-        'Q1': [item[0] for item in variables_quantity],
+#     df = pd.DataFrame({
+#         'Asset': unique_assets,
+#         'pricesT1': [item[0] for item in variables_price],
+#         'pricesT2': [item[1] for item in variables_price],
+#         'weightsT1': [item[0] for item in variables_weight],
+#         'weightsT2': [item[1] for item in variables_weight],
+#         'qtd_t1': [item[0] for item in variables_quantity],
  
-    })
-    
-    # Comparing the weights and adding 'Side' column
-    df['Side'] = df.apply(lambda row: "Buy" if row['W2'] > row['W1'] else "Sell", axis=1)
-    df['Q2'] =  invested_cash * df['W2'] / df['P2'] 
-    
+#     })
+
+
+    # Converting df columns to array format
+    weightdT1 = df['weightsT1'].values
+    weightsT2 = df['weightsT2'].values
+    pricesT1 = df['pricesT1'].values
+    pricesT2 = df['pricesT2'].values
+
     
 
-    df['Balance'] = df.apply(lambda row: abs(row['Q2'] - row['Q1']) * (row['P2'] - row['P1']) if row['Side'] == 'Sell' and row['P2'] > row['P1'] else 
-                                         - abs((row['Q2'] - row['Q1']) * (row['P2'] - row['P1'])) if row['Side'] == 'Sell' and row['P2'] <= row['P1'] else
-                                         - abs(row['Q2'] - row['Q1']) * row['P2'] , axis=1)
-    df['Result'] = df['Balance'].cumsum()
-    
-    st.dataframe(df)
+
         
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
