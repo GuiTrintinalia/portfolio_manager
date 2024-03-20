@@ -823,9 +823,8 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     # Adicionar uma coluna para o lucro ou prejuízo de capital
     # return optimized_portfolio
 
-def optimizeBySharpe(dataframe):
+def optimizeBySharpe(df):
     pd.options.display.float_format = '{:.3f}'.format
-    df = dataframe.copy()
     pricesT2 = df['pricesT2'].values
     qtT1 = df['qtT1'].values
     weightsT1 = df['weightsT1'].values
@@ -888,6 +887,7 @@ if surfing_frontier:
     max_len = 0
     
     for asset in unique_assets:
+        st.write(asset)
         mask = (optimize_df['Asset'] == asset)
         prices = optimize_df.loc[mask, 'Price'].tolist()
         weights = optimize_df.loc[mask, 'Weight'].tolist()
@@ -900,7 +900,8 @@ if surfing_frontier:
 
     dfsToOptimize = []
     resultsList = []
-    st.write(max_len)
+    
+    
     # Criar a lista de DataFrames
     for i in range(1, max_len):
         # Crie um DataFrame para cada iteração
@@ -913,18 +914,19 @@ if surfing_frontier:
         })
         st.dataframe(df)
         dfsToOptimize.append(df)
+        st.dataframe(df)
 
-        for i in range(len(dfsToOptimize)):
-            optimizedDf = optimizeBySharpe(dfsToOptimize[i])
-            resultsList.append(optimizedDf)
+        # for i in range(len(dfsToOptimize)):
+        #     optimizedDf = optimizeBySharpe(dfsToOptimize[i])
+        #     resultsList.append(optimizedDf)
         
-            if i > 0:
-                lastOptimized = resultsList[i - 1]
-                dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2'].iloc[0]
-                dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2'].iloc[0]
+        #     if i > 0:
+        #         lastOptimized = resultsList[i - 1]
+        #         dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2'].iloc[0]
+        #         dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2'].iloc[0]
                 
-        for df in resultsList:
-            st.dataframe(df)
+        # for df in resultsList:
+        #     st.dataframe(df)
         
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
