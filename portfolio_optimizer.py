@@ -886,7 +886,7 @@ if surfing_frontier:
     quantityList =[]
     idsList = []
     
-    for id in max_ids:
+    for i in range(max_ids):
         for asset in unique_assets:
             mask = (optimize_df['asset'] == asset)
             prices = optimize_df.loc[mask, 'price'].tolist()
