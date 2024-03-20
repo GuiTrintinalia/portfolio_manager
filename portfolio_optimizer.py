@@ -901,7 +901,7 @@ if surfing_frontier:
     dfsToOptimize = []
     resultsList = []
     
-    for i in range(1, len(idsList)):
+    for i in range(2, len(idsList)):
         df = pd.DataFrame({
             'pricesT1': [item[i-1] for item in pricesList],
             'pricesT2': [item[i] for item in pricesList],
