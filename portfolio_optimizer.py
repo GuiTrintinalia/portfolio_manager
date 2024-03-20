@@ -886,7 +886,7 @@ if surfing_frontier:
     max_len = 0
     
     for asset in unique_assets:
-    #     st.write(asset)
+        st.write(asset)
     #     mask = (optimize_df['Asset'] == asset)
     #     prices = optimize_df.loc[mask, 'Price'].tolist()
     #     weights = optimize_df.loc[mask, 'Weight'].tolist()
