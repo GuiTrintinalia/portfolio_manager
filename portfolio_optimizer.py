@@ -865,12 +865,12 @@ if surfing_frontier:
     
     price_columns = [col for col in backtested_df.columns if col.endswith('_Price')]
     weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
-    data = {'Asset': [], 'Price': [], 'Weight': [], 'Date': [], 'ID': []}
+    data = {'ID': [] ,'date': [], 'asset': [], 'price': [], 'weight': [], 'quantity': []}
     for date, row in backtested_df.iterrows():
         for price_col, weight_col in zip(price_columns, weight_columns):
             asset = price_col.replace('_Price', '')
             data['ID'].append(row['ID'])
-            data['date'].append(date)
+            data['Date'].append(date)
             data['asset'].append(asset)
             data['price'].append(row[price_col])
             data['weight'].append(row[weight_col])
