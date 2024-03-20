@@ -882,6 +882,7 @@ if surfing_frontier:
 
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
+    st.write(optimize_df.columns)
   
     unique_assets = optimize_df['Asset'].unique()
     totalOfAssets = len(unique_assets)
