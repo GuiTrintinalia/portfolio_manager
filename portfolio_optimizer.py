@@ -892,7 +892,7 @@ if surfing_frontier:
         prices = optimize_df.loc[mask, 'price'].tolist()
         weights = optimize_df.loc[mask, 'weight'].tolist()
         quantities = optimize_df.loc[mask, 'quantity'].tolist()
-        ids =[mask, 'ID'].tolist()        
+        ids = optimize_df.loc[mask, 'ID'].tolist()        
         pricesList.append(prices)
         weightsList.append(weights)
         quantityList.append(quantities)
