@@ -823,35 +823,6 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     # Adicionar uma coluna para o lucro ou prejuízo de capital
     # return optimized_portfolio
 
-surfing_frontier = st.button('Wave Sharpe Ratio')
-if surfing_frontier:
-    optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
-    backtested_df = get_max_sharpe_per_id(optimized_dfs)
-    backtested_df.set_index('Date', inplace=True, drop=True)
-    price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]	
-    backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
-    backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
-    st.dataframe(backtested_df)
-    
-    optimize_df  = backtested_df.copy()
-
-    price_columns = [col for col in optimize_df.columns if col.endswith('_Price')]
-    weight_columns = [col for col in optimize_df.columns if col.endswith('_Weight')]
-
-    # Creating a new data structure with prices, weights, dates, and IDs for each asset on each date
-    data = {'Asset': [], 'Price': [], 'Weight': [], 'Date': [], 'ID': []}
-    for date, row in optimize_df.iterrows():
-        for price_col, weight_col in zip(price_columns, weight_columns):
-            asset = price_col.replace('_Price', '')
-            data['Asset'].append(asset)
-            data['Price'].append(row[price_col])
-            data['Weight'].append(row[weight_col])
-            data['Date'].append(date)
-            data['ID'].append(row['ID'])   # Append the ID for each row
-
-    optimize_df = pd.DataFrame(data)
-    st.dataframe(optimize_df)
-  
 def optimizeBySharpe(dataframe):
     pd.options.display.float_format = '{:.3f}'.format
     df = dataframe.copy()
@@ -882,8 +853,36 @@ def optimizeBySharpe(dataframe):
     st.markdown(f'**Total Invested T1:** {totalInvestedT1:.3f}')
     st.markdown(f'**Available Cash T2:** {funds:.3f}')
     return df
-   
-if session_state.optimized_data is not None:
+
+surfing_frontier = st.button('Wave Sharpe Ratio')
+if surfing_frontier:
+    optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
+    backtested_df = get_max_sharpe_per_id(optimized_dfs)
+    backtested_df.set_index('Date', inplace=True, drop=True)
+    price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]	
+    backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
+    backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
+    st.dataframe(backtested_df)
+    
+    optimize_df  = backtested_df.copy()
+
+    price_columns = [col for col in optimize_df.columns if col.endswith('_Price')]
+    weight_columns = [col for col in optimize_df.columns if col.endswith('_Weight')]
+
+    # Creating a new data structure with prices, weights, dates, and IDs for each asset on each date
+    data = {'Asset': [], 'Price': [], 'Weight': [], 'Date': [], 'ID': []}
+    for date, row in optimize_df.iterrows():
+        for price_col, weight_col in zip(price_columns, weight_columns):
+            asset = price_col.replace('_Price', '')
+            data['Asset'].append(asset)
+            data['Price'].append(row[price_col])
+            data['Weight'].append(row[weight_col])
+            data['Date'].append(date)
+            data['ID'].append(row['ID'])   # Append the ID for each row
+
+    optimize_df = pd.DataFrame(data)
+    st.dataframe(optimize_df)
+  
     unique_assets = optimize_df['Asset'].unique()
     totalOfAssets = len(unique_assets)
     variables_price = []
