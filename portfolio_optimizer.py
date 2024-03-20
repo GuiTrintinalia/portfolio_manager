@@ -788,41 +788,7 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     initial_quantities = pd.DataFrame([initial_quantities_data])  # Criando o DataFrame após o loop
 
     st.dataframe(initial_quantities)
-    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
-    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
-    # price_df = price_df.diff().fillna(0)
-    # profit_loss = optimized_portfolio.values * price_df.values
-    
-    # st.dataframe(price_df)
-    # st.dataframe(profit_loss)
-
-    # # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
-    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
-    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
-
-    # # Adicionar uma coluna para o lucro ou prejuízo de capital
-    # return optimized_portfolio
-
-    # quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
-    # rel_weight_prices = df.iloc[:, quant_start_idx:]
-
-    # Multiplicar os preços relativos pelo capital inicial
-    # optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
-    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
-    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
-    # price_df = price_df.diff().fillna(0)
-    # profit_loss = optimized_portfolio.values * price_df.values
-    
-    # st.dataframe(price_df)
-    # st.dataframe(profit_loss)
-
-    # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
-    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
-    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
-
-    # Adicionar uma coluna para o lucro ou prejuízo de capital
-    # return optimized_portfolio
-
+ 
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
@@ -849,71 +815,19 @@ if surfing_frontier:
             data['Date'].append(date)
             data['ID'].append(row['ID'])   # Append the ID for each row
 
-    # Creating a new DataFrame
-
-
     optimize_df = pd.DataFrame(data)
-
     optimize_df.loc[optimize_df['ID'] == 1, 'Quantity'] = invested_cash * optimize_df.loc[optimize_df['ID'] == 1, 'Weight'] / optimize_df.loc[optimize_df['ID'] == 1, 'Price']
-    
-
     optimize_df = optimize_df.sort_values(by=['Asset', 'Date'])
 
-    for asset in optimize_df['Asset'].unique():
-        asset_rows = optimize_df[optimize_df['Asset'] == asset]
-        for i in range(1, len(asset_rows)):
-            current_weight = asset_rows.iloc[i]['Weight']
-            previous_weight = asset_rows.iloc[i - 1]['Weight']
-            if current_weight > previous_weight:
-                optimize_df.at[asset_rows.index[i], 'Operation'] = 'buy'
-            else:
-                optimize_df.at[asset_rows.index[i], 'Operation'] = 'sell'
-    
-    
     session_state.optimized_data = optimize_df.copy()
     st.dataframe(session_state.optimized_data)
-    
-# if session_state.optimized_data is not None:
-#     optimize_df = session_state.optimized_data  # Assuming optimize_df is defined somewhere
-#     unique_assets = optimize_df['Asset'].unique()
-#     n = len(unique_assets)
-#     variables_price = []
-#     variables_weight = []
-#     variables_quantity = []
-#     max_len = 0
-    
-#     for asset in unique_assets:
-#         mask = (optimize_df['Asset'] == asset)
-#         prices = optimize_df.loc[mask, 'Price'].tolist()
-#         weights = optimize_df.loc[mask, 'Weight'].tolist()
-#         quantities = optimize_df.loc[mask, 'Quantity'].tolist()
-        
-#         max_len = max(max_len, len(prices), len(weights), len(quantities))
-#         variables_price.append(prices + [None] * (max_len - len(prices)))
-#         variables_weight.append(weights + [None] * (max_len - len(weights)))
-#         variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
-
-#     df = pd.DataFrame({
-#         'Asset': unique_assets,
-#         'pricesT1': [item[0] for item in variables_price],
-#         'pricesT2': [item[1] for item in variables_price],
-#         'weightsT1': [item[0] for item in variables_weight],
-#         'weightsT2': [item[1] for item in variables_weight],
-#         'qtd_t1': [item[0] for item in variables_quantity],
- 
-#     })
-
 
     # Converting df columns to array format
-    weightdT1 = df['weightsT1'].values
+    weightsT1 = df['weightsT1'].values
     weightsT2 = df['weightsT2'].values
     pricesT1 = df['pricesT1'].values
     pricesT2 = df['pricesT2'].values
-
-    
-
-
-        
+	
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
