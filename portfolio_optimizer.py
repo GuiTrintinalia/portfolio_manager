@@ -879,42 +879,43 @@ if surfing_frontier:
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
     
-    max_ids = optimize_df.ID.max()
-    unique_assets = optimize_df.asset.unique()
-    pricesList = []
-    weightsList = []
-    quantityList =[]
-    idsList = []
     
-    for i in range(max_ids):
-        for asset in unique_assets:
-            mask = (optimize_df['asset'] == asset)
-            prices = optimize_df.loc[mask, 'price'].tolist()
-            weights = optimize_df.loc[mask, 'weight'].tolist()
-            quantities = optimize_df.loc[mask, 'quantity'].tolist()
-            ids = optimize_df.loc[mask, 'ID'].tolist()        
-            pricesList.append(prices)
-            weightsList.append(weights)
-            quantityList.append(quantities)
-            idsList.append(ids)
+    dfs_by_id = {}
+    for unique_id in optimize_df['ID'].unique():
+        df_id = optimize_df[optimize_df['ID'] == unique_id][['ID', 'asset', 'price', 'weight']]
+        dfs_by_id[unique_id] = df_id
 
-    dfsToOptimize = []
-    resultsList = []
-    st.write(len(idsList))
-    
+    # Combine DataFrames by ID
+    combined_dfs = []
+    unique_ids = sorted(dfs_by_id.keys())
+    for i in range(len(unique_ids) - 1):
+        current_id = unique_ids[i]
+        next_id = unique_ids[i + 1]
+        df_t1 = dfs_by_id[current_id].copy()
+        df_t1.columns = ['ID', 'asset', f'priceT1', f'weightT1']
+        
+        df_t2 = dfs_by_id[next_id].copy()
+        df_t2.columns = ['ID', 'asset', f'priceT2', f'weightT2']
+        
+        combined_df = pd.merge(df_t1, df_t2, on='asset', suffixes=('_t1', '_t2'))
+        combined_dfs.append(combined_df)
 
-    for i in range(1, len(idsList)):
-        df = pd.DataFrame({
-            'pricesT1': [item[i-1] for item in pricesList],
-            'pricesT2': [item[i] for item in pricesList],
-            'weightsT1': [item[i-1] for item in weightsList],
-            'weightsT2': [item[i] for item in weightsList],
-            'qtT1': [item[i-1] for item in quantityList],
-        })
+    for df in combined_dfs:
+        st.dataframe(df)
+        
     
-        dfsToOptimize.append(df)
-        for df in dfsToOptimize:
-            st.dataframe(df)
+    
+        # df = pd.DataFrame({
+        #     'pricesT1': [item[i-1] for item in pricesList],
+        #     'pricesT2': [item[i] for item in pricesList],
+        #     'weightsT1': [item[i-1] for item in weightsList],
+        #     'weightsT2': [item[i] for item in weightsList],
+        #     'qtT1': [item[i-1] for item in quantityList],
+        # })
+    
+        # dfsToOptimize.append(df)
+        # for df in dfsToOptimize:
+        #     st.dataframe(df)
 
         # for i in range(len(dfsToOptimize)):
         #     optimizedDf = optimizeBySharpe(dfsToOptimize[i])
