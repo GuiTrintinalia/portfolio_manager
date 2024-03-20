@@ -911,18 +911,20 @@ if surfing_frontier:
         })
     
         dfsToOptimize.append(df)
-
-        for i in range(len(dfsToOptimize)):
-            optimizedDf = optimizeBySharpe(dfsToOptimize[i])
-            resultsList.append(optimizedDf)
-        
-            if i > 0:
-                lastOptimized = resultsList[i - 1]
-                dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2']
-                dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2']
-                
-        for df in resultsList:
+        for df in dfsToOptimize:
             st.dataframe(df)
+
+        # for i in range(len(dfsToOptimize)):
+        #     optimizedDf = optimizeBySharpe(dfsToOptimize[i])
+        #     resultsList.append(optimizedDf)
+        
+        #     if i > 0:
+        #         lastOptimized = resultsList[i - 1]
+        #         dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2']
+        #         dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2']
+                
+        # for df in resultsList:
+        #     st.dataframe(df)
         
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
