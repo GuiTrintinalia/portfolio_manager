@@ -850,6 +850,7 @@ if surfing_frontier:
             data['ID'].append(row['ID'])   # Append the ID for each row
 
     optimize_df = pd.DataFrame(data)
+    st.dataframe(optimize_df)
   
 def optimizeBySharpe(dataframe):
     pd.options.display.float_format = '{:.3f}'.format
