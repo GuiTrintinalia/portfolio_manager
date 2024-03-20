@@ -870,7 +870,7 @@ if surfing_frontier:
         for price_col, weight_col in zip(price_columns, weight_columns):
             asset = price_col.replace('_Price', '')
             data['ID'].append(row['ID'])
-            data['Date'].append(date)
+            data['date'].append(date)
             data['asset'].append(asset)
             data['price'].append(row[price_col])
             data['weight'].append(row[weight_col])
