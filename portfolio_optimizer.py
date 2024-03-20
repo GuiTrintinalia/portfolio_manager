@@ -879,31 +879,31 @@ if surfing_frontier:
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
     
-    unique_assets = optimize_df['asset'].unique()
-    totalOfAssets = len(unique_assets)
+    max_ids = optimize_df.ID.max()
+    unique_assets = optimize_df.assets.unique()
     pricesList = []
     weightsList = []
     quantityList =[]
     idsList = []
     
-    for asset in unique_assets:
-        mask = (optimize_df['asset'] == asset)
-        prices = optimize_df.loc[mask, 'price'].tolist()
-        weights = optimize_df.loc[mask, 'weight'].tolist()
-        quantities = optimize_df.loc[mask, 'quantity'].tolist()
-        ids = optimize_df.loc[mask, 'ID'].tolist()        
-        pricesList.append(prices)
-        weightsList.append(weights)
-        quantityList.append(quantities)
-        idsList.append(ids)
+    for id in max_ids:
+        for asset in unique_assets:
+            mask = (optimize_df['asset'] == asset)
+            prices = optimize_df.loc[mask, 'price'].tolist()
+            weights = optimize_df.loc[mask, 'weight'].tolist()
+            quantities = optimize_df.loc[mask, 'quantity'].tolist()
+            ids = optimize_df.loc[mask, 'ID'].tolist()        
+            pricesList.append(prices)
+            weightsList.append(weights)
+            quantityList.append(quantities)
+            idsList.append(ids)
 
     dfsToOptimize = []
     resultsList = []
     st.write(len(idsList))
     
-    
-    
-    for i in range(2, len(idsList)):
+
+    for i in range(1, len(idsList)):
         df = pd.DataFrame({
             'pricesT1': [item[i-1] for item in pricesList],
             'pricesT2': [item[i] for item in pricesList],
