@@ -864,14 +864,10 @@ if surfing_frontier:
     backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
     st.dataframe(backtested_df)
     
-    optimize_df  = backtested_df.copy()
-
-    price_columns = [col for col in optimize_df.columns if col.endswith('_Price')]
-    weight_columns = [col for col in optimize_df.columns if col.endswith('_Weight')]
-
-    # Creating a new data structure with prices, weights, dates, and IDs for each asset on each date
+    price_columns = [col for col in backtested_df.columns if col.endswith('_Price')]
+    weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
     data = {'Asset': [], 'Price': [], 'Weight': [], 'Date': [], 'ID': []}
-    for date, row in optimize_df.iterrows():
+    for date, row in backtested_df.iterrows():
         for price_col, weight_col in zip(price_columns, weight_columns):
             asset = price_col.replace('_Price', '')
             data['Asset'].append(asset)
