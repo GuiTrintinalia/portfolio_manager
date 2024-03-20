@@ -876,7 +876,6 @@ if surfing_frontier:
             data['weight'].append(row[weight_col])
             data['quantity'].append(invested_cash*row[weight_col] /row[price_col])
         
-            
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
     
@@ -900,6 +899,9 @@ if surfing_frontier:
 
     dfsToOptimize = []
     resultsList = []
+    st.write(len(idsList))
+    
+    
     
     for i in range(2, len(idsList)):
         df = pd.DataFrame({
