@@ -787,6 +787,42 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     
     initial_quantities = pd.DataFrame([initial_quantities_data])  # Criando o DataFrame após o loop
 
+    st.dataframe(initial_quantities)
+    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
+    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
+    # price_df = price_df.diff().fillna(0)
+    # profit_loss = optimized_portfolio.values * price_df.values
+    
+    # st.dataframe(price_df)
+    # st.dataframe(profit_loss)
+
+    # # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
+    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
+    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
+
+    # # Adicionar uma coluna para o lucro ou prejuízo de capital
+    # return optimized_portfolio
+
+    # quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
+    # rel_weight_prices = df.iloc[:, quant_start_idx:]
+
+    # Multiplicar os preços relativos pelo capital inicial
+    # optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
+    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
+    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
+    # price_df = price_df.diff().fillna(0)
+    # profit_loss = optimized_portfolio.values * price_df.values
+    
+    # st.dataframe(price_df)
+    # st.dataframe(profit_loss)
+
+    # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
+    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
+    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
+
+    # Adicionar uma coluna para o lucro ou prejuízo de capital
+    # return optimized_portfolio
+
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
