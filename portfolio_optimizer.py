@@ -874,8 +874,8 @@ if surfing_frontier:
             data['Price'].append(row[price_col])
             data['Weight'].append(row[weight_col])
             data['Date'].append(date)
-            data['ID'].append(row['ID'])   # Append the ID for each row
-
+            data['ID'].append(row['ID'])   
+            
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
     st.write(optimize_df.columns)
