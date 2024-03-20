@@ -880,7 +880,7 @@ if surfing_frontier:
     st.dataframe(optimize_df)
     
     max_ids = optimize_df.ID.max()
-    unique_assets = optimize_df.assets.unique()
+    unique_assets = optimize_df.asset.unique()
     pricesList = []
     weightsList = []
     quantityList =[]
