@@ -887,47 +887,32 @@ if surfing_frontier:
 
     # Combine DataFrames by ID
     combined_dfs = []
+    results = []
     unique_ids = sorted(dfs_by_id.keys())
     for i in range(len(unique_ids) - 1):
         current_id = unique_ids[i]
         next_id = unique_ids[i + 1]
         df_t1 = dfs_by_id[current_id].copy()
-        df_t1.columns = ['ID', 'asset', f'priceT1', f'weightT1']
+        df_t1.columns = ['ID', 'asset', f'pricesT1', f'weightsT1']
         
         df_t2 = dfs_by_id[next_id].copy()
-        df_t2.columns = ['ID', 'asset', f'priceT2', f'weightT2']
+        df_t2.columns = ['ID', 'asset', f'pricesT2', f'weightsT2']
         
         combined_df = pd.merge(df_t1, df_t2, on='asset', suffixes=('_t1', '_t2'))
+        combined_df['qtT1'] = invested_cash * combined_df['weightsT1'] / combined_df['pricesT1']
         combined_dfs.append(combined_df)
 
-    for df in combined_dfs:
-        st.dataframe(df)
+    for i in range(len(combined_dfs)):
+        optimizedDf = optimizeBySharpe(combined_dfs[i])
+        results.append(optimizedDf)
         
-    
-    
-        # df = pd.DataFrame({
-        #     'pricesT1': [item[i-1] for item in pricesList],
-        #     'pricesT2': [item[i] for item in pricesList],
-        #     'weightsT1': [item[i-1] for item in weightsList],
-        #     'weightsT2': [item[i] for item in weightsList],
-        #     'qtT1': [item[i-1] for item in quantityList],
-        # })
-    
-        # dfsToOptimize.append(df)
-        # for df in dfsToOptimize:
-        #     st.dataframe(df)
-
-        # for i in range(len(dfsToOptimize)):
-        #     optimizedDf = optimizeBySharpe(dfsToOptimize[i])
-        #     resultsList.append(optimizedDf)
-        
-        #     if i > 0:
-        #         lastOptimized = resultsList[i - 1]
-        #         dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2']
-        #         dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2']
+        if i > 0:
+            lastOptimized = results[i - 1]
+            combined_dfs[i]['weightsT1'] = lastOptimized['optWeightsT2']
+            combined_dfs[i]['qtT1'] = lastOptimized['optQtT2']
                 
-        # for df in resultsList:
-        #     st.dataframe(df)
+    for df in results:
+        st.dataframe(df)
         
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
