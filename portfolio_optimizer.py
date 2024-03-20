@@ -869,51 +869,48 @@ if surfing_frontier:
     for date, row in backtested_df.iterrows():
         for price_col, weight_col in zip(price_columns, weight_columns):
             asset = price_col.replace('_Price', '')
-            data['Asset'].append(asset)
-            data['Price'].append(row[price_col])
-            data['Weight'].append(row[weight_col])
-            data['Date'].append(date)
-            data['ID'].append(row['ID'])   
+            data['ID'].append(row['ID'])
+            data['date'].append(date)
+            data['asset'].append(asset)
+            data['price'].append(row[price_col])
+            data['weight'].append(row[weight_col])
+            data['quantity'].append(invested_cash*row[weight_col] /row[price_col])
+        
             
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
     
-    unique_assets = optimize_df['Asset'].unique()
+    unique_assets = optimize_df['asset'].unique()
     totalOfAssets = len(unique_assets)
-    variables_price = []
-    variables_weight = []
-    variables_quantity = []
-    max_len = 0
+    pricesList = []
+    weightsList = []
+    quantityList =[]
+    idsList = []
     
     for asset in unique_assets:
-        st.write(asset)
-    #     mask = (optimize_df['Asset'] == asset)
-    #     prices = optimize_df.loc[mask, 'Price'].tolist()
-    #     weights = optimize_df.loc[mask, 'Weight'].tolist()
-    #     quantities = optimize_df.loc[mask, 'Quantity'].tolist()
-        
-    #     max_len = max(max_len, len(prices), len(weights), len(quantities))
-    #     variables_price.append(prices + [None] * (max_len - len(prices)))
-    #     variables_weight.append(weights + [None] * (max_len - len(weights)))
-    #     variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
+        mask = (optimize_df['asset'] == asset)
+        prices = optimize_df.loc[mask, 'price'].tolist()
+        weights = optimize_df.loc[mask, 'weight'].tolist()
+        quantities = optimize_df.loc[mask, 'quantity'].tolist()
+        ids =[mask, 'ID'].tolist()        
+        pricesList.append(prices)
+        weightsList.append(weights)
+        quantityList.append(quantities)
+        idsList.append(ids)
 
-    # dfsToOptimize = []
-    # resultsList = []
+    dfsToOptimize = []
+    resultsList = []
     
-    
-    # # Criar a lista de DataFrames
-    # for i in range(1, max_len):
-    #     # Crie um DataFrame para cada iteração
-    #     df = pd.DataFrame({
-    #         'pricesT1': [item[i-1] for item in variables_price],
-    #         'pricesT2': [item[i] for item in variables_price],
-    #         'weightsT1': [item[i-1] for item in variables_weight],
-    #         'weightsT2': [item[i] for item in variables_weight],
-    #         'qtT1': [item[i-1] for item in variables_quantity],
-    #     })
-    #     st.dataframe(df)
-    #     dfsToOptimize.append(df)
-    #     st.dataframe(df)
+    for i in range(1, len(idsList)):
+        df = pd.DataFrame({
+            'pricesT1': [item[i-1] for item in pricesList],
+            'pricesT2': [item[i] for item in pricesList],
+            'weightsT1': [item[i-1] for item in weightsList],
+            'weightsT2': [item[i] for item in weightsList],
+            'qtT1': [item[i-1] for item in quantityList],
+        })
+        st.dataframe(df)
+        dfsToOptimize.append(df)
 
         # for i in range(len(dfsToOptimize)):
         #     optimizedDf = optimizeBySharpe(dfsToOptimize[i])
