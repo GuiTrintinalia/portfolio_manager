@@ -788,7 +788,41 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     initial_quantities = pd.DataFrame([initial_quantities_data])  # Criando o DataFrame após o loop
 
     st.dataframe(initial_quantities)
- 
+    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
+    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
+    # price_df = price_df.diff().fillna(0)
+    # profit_loss = optimized_portfolio.values * price_df.values
+    
+    # st.dataframe(price_df)
+    # st.dataframe(profit_loss)
+
+    # # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
+    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
+    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
+
+    # # Adicionar uma coluna para o lucro ou prejuízo de capital
+    # return optimized_portfolio
+
+    # quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
+    # rel_weight_prices = df.iloc[:, quant_start_idx:]
+
+    # Multiplicar os preços relativos pelo capital inicial
+    # optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
+    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
+    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
+    # price_df = price_df.diff().fillna(0)
+    # profit_loss = optimized_portfolio.values * price_df.values
+    
+    # st.dataframe(price_df)
+    # st.dataframe(profit_loss)
+
+    # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
+    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
+    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
+
+    # Adicionar uma coluna para o lucro ou prejuízo de capital
+    # return optimized_portfolio
+
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
@@ -816,18 +850,87 @@ if surfing_frontier:
             data['ID'].append(row['ID'])   # Append the ID for each row
 
     optimize_df = pd.DataFrame(data)
-    optimize_df.loc[optimize_df['ID'] == 1, 'Quantity'] = invested_cash * optimize_df.loc[optimize_df['ID'] == 1, 'Weight'] / optimize_df.loc[optimize_df['ID'] == 1, 'Price']
-    optimize_df = optimize_df.sort_values(by=['Asset', 'Date'])
-
-    session_state.optimized_data = optimize_df.copy()
-    st.dataframe(session_state.optimized_data)
-
-    # Converting df columns to array format
+    st.dataframe(optimize_df)
+ 
+def optimizeBySharpe(dataframe):
+    pd.options.display.float_format = '{:.3f}'.format
+    df = dataframe.copy()
+    pricesT2 = df['pricesT2'].values
+    qtT1 = df['qtT1'].values
     weightsT1 = df['weightsT1'].values
     weightsT2 = df['weightsT2'].values
     pricesT1 = df['pricesT1'].values
-    pricesT2 = df['pricesT2'].values
-	
+    investedT1 = pricesT1 * qtT1
+    totalInvestedT1 = np.sum(investedT1)
+    fund = qtT1 * pricesT2
+    funds = np.sum(fund)
+    maxQtT2 = funds * weightsT2 / pricesT2
+    maxInvestedT2 = maxQtT2 * pricesT2
+    optQtT2 = np.sum(maxInvestedT2) * weightsT2 /  pricesT2
+    optWeightsT2 = optQtT2 * pricesT2 / np.sum(maxInvestedT2)
+  
+    df['optWeightsT2'] = optWeightsT2
+    df['optQtT2'] = optQtT2
+    df['qtBuyOrSell'] = abs(optQtT2 - qtT1)
+    df['investedT1'] = investedT1
+    df['investedT2'] = fund
+    # Reorganiza as colunas
+    df = df[['pricesT1', 'pricesT2', 'investedT1', 'investedT2',
+             'qtT1', 'optQtT2', 'qtBuyOrSell', 'weightsT1', 
+             'optWeightsT2', 'weightsT2']]
+    
+    st.markdown(f'**Total Invested T1:** {totalInvestedT1:.3f}')
+    st.markdown(f'**Available Cash T2:** {funds:.3f}')
+    return df
+   
+if session_state.optimized_data is not None:
+    optimize_df = session_state.optimized_data  # Assuming optimize_df is defined somewhere
+    unique_assets = optimize_df['Asset'].unique()
+    totalOfAssets = len(unique_assets)
+    variables_price = []
+    variables_weight = []
+    variables_quantity = []
+    max_len = 0
+    
+    for asset in unique_assets:
+        mask = (optimize_df['Asset'] == asset)
+        prices = optimize_df.loc[mask, 'Price'].tolist()
+        weights = optimize_df.loc[mask, 'Weight'].tolist()
+        quantities = optimize_df.loc[mask, 'Quantity'].tolist()
+        
+        max_len = max(max_len, len(prices), len(weights), len(quantities))
+        variables_price.append(prices + [None] * (max_len - len(prices)))
+        variables_weight.append(weights + [None] * (max_len - len(weights)))
+        variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
+
+    dfsToOptimize = []
+    resultsList = []
+
+    # Criar a lista de DataFrames
+    for i in range(1, totalOfAssets-1):
+        # Crie um DataFrame para cada iteração
+        df = pd.DataFrame({
+            'pricesT1': [item[i-1] for item in variables_price],
+            'pricesT2': [item[i] for item in variables_price],
+            'weightsT1': [item[i-1] for item in variables_weight],
+            'weightsT2': [item[i] for item in variables_weight],
+            'qtT1': [item[i-1] for item in variables_quantity],
+        })
+        st.dataframe(df)
+        dfsToOptimize.append(df)
+
+        for i in range(len(dfsToOptimize)):
+            optimizedDf = optimizeBySharpe(dfsToOptimize[i])
+            resultsList.append(optimizedDf)
+        
+            if i > 0:
+                lastOptimized = resultsList[i - 1]
+                dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2'].iloc[0]
+                dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2'].iloc[0]
+        
+        for df in resultsList:
+            st.dataframe(df)
+        
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
