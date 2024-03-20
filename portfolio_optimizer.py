@@ -909,7 +909,7 @@ if surfing_frontier:
             'weightsT2': [item[i] for item in weightsList],
             'qtT1': [item[i-1] for item in quantityList],
         })
-        st.dataframe(df)
+    
         dfsToOptimize.append(df)
 
         for i in range(len(dfsToOptimize)):
