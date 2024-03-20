@@ -918,8 +918,8 @@ if surfing_frontier:
         
             if i > 0:
                 lastOptimized = resultsList[i - 1]
-                dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2'].iloc[0]
-                dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2'].iloc[0]
+                dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2']
+                dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2']
                 
         for df in resultsList:
             st.dataframe(df)
