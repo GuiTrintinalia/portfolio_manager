@@ -851,6 +851,9 @@ def optimizeBySharpe(df):
     
     st.markdown(f'**Total Invested T1:** {totalInvestedT1:.3f}')
     st.markdown(f'**Available Cash T2:** {funds:.3f}')
+    st.markdown(f'**ROI:** {funds / invested_cash:.3f}')
+    st.dataframe(df)
+
     return df
 
 surfing_frontier = st.button('Wave Sharpe Ratio')
@@ -911,8 +914,6 @@ if surfing_frontier:
             combined_dfs[i]['weightsT1'] = lastOptimized['optWeightsT2']
             combined_dfs[i]['qtT1'] = lastOptimized['optQtT2']
                 
-    for df in results:
-        st.dataframe(df)
         
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
