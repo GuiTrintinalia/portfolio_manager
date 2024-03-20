@@ -850,8 +850,7 @@ if surfing_frontier:
             data['ID'].append(row['ID'])   # Append the ID for each row
 
     optimize_df = pd.DataFrame(data)
-    st.dataframe(optimize_df)
- 
+  
 def optimizeBySharpe(dataframe):
     pd.options.display.float_format = '{:.3f}'.format
     df = dataframe.copy()
@@ -884,7 +883,6 @@ def optimizeBySharpe(dataframe):
     return df
    
 if session_state.optimized_data is not None:
-    optimize_df = session_state.optimized_data  # Assuming optimize_df is defined somewhere
     unique_assets = optimize_df['Asset'].unique()
     totalOfAssets = len(unique_assets)
     variables_price = []
