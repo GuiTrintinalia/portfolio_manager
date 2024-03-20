@@ -838,20 +838,21 @@ def optimizeBySharpe(df):
     maxInvestedT2 = maxQtT2 * pricesT2
     optQtT2 = np.sum(maxInvestedT2) * weightsT2 /  pricesT2
     optWeightsT2 = optQtT2 * pricesT2 / np.sum(maxInvestedT2)
+    portfolioROI = (funds /totalInvestedT1)-1
   
     df['optWeightsT2'] = optWeightsT2
     df['optQtT2'] = optQtT2
     df['qtBuyOrSell'] = abs(optQtT2 - qtT1)
     df['investedT1'] = investedT1
     df['investedT2'] = fund
-    # Reorganiza as colunas
+    
     df = df[['pricesT1', 'pricesT2', 'investedT1', 'investedT2',
              'qtT1', 'optQtT2', 'qtBuyOrSell', 'weightsT1', 
              'optWeightsT2', 'weightsT2']]
     
     st.markdown(f'**Total Invested T1:** {totalInvestedT1:.3f}')
     st.markdown(f'**Available Cash T2:** {funds:.3f}')
-    st.markdown(f'**ROI:** {funds / invested_cash:.3f}')
+    st.markdown(f'**ROI:** {portfolioROI:.3f}')
     st.dataframe(df)
 
     return df
@@ -905,16 +906,18 @@ if surfing_frontier:
         combined_df['qtT1'] = invested_cash * combined_df['weightsT1'] / combined_df['pricesT1']
         combined_dfs.append(combined_df)
 
-    for i in range(len(combined_dfs)):
+    # first optimization
+    optimizedDf = optimizeBySharpe(combined_dfs[0])
+    results.append(optimizedDf)
+    
+    for i in range(1, len(combined_dfs)):
+        lastOptimized = results[i - 1]
+        combined_dfs[i]['qtT1'] = lastOptimized['optQtT2']
+        combined_dfs[i]['weightsT1'] = lastOptimized['optWeightsT2']
         optimizedDf = optimizeBySharpe(combined_dfs[i])
         results.append(optimizedDf)
-        
-        if i > 0:
-            lastOptimized = results[i - 1]
-            combined_dfs[i]['weightsT1'] = lastOptimized['optWeightsT2']
-            combined_dfs[i]['qtT1'] = lastOptimized['optQtT2']
-                
-        
+    
+
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
