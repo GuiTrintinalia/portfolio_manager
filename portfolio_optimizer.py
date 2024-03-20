@@ -787,42 +787,6 @@ def surfing_sharpe_optimize(df, initial_capital=100000):
     
     initial_quantities = pd.DataFrame([initial_quantities_data])  # Criando o DataFrame após o loop
 
-    st.dataframe(initial_quantities)
-    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
-    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
-    # price_df = price_df.diff().fillna(0)
-    # profit_loss = optimized_portfolio.values * price_df.values
-    
-    # st.dataframe(price_df)
-    # st.dataframe(profit_loss)
-
-    # # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
-    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
-    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
-
-    # # Adicionar uma coluna para o lucro ou prejuízo de capital
-    # return optimized_portfolio
-
-    # quant_start_idx = len(df.columns) - len(df.columns[df.columns.str.endswith('_rel_weight_price')])
-    # rel_weight_prices = df.iloc[:, quant_start_idx:]
-
-    # Multiplicar os preços relativos pelo capital inicial
-    # optimized_portfolio = rel_weight_prices.mul(initial_capital, axis=0)
-    # optimized_portfolio.columns = [col.split('_')[0] + '_quantity' for col in optimized_portfolio.columns]
-    # optimized_portfolio = optimized_portfolio.diff().fillna(0)
-    # price_df = price_df.diff().fillna(0)
-    # profit_loss = optimized_portfolio.values * price_df.values
-    
-    # st.dataframe(price_df)
-    # st.dataframe(profit_loss)
-
-    # Criar um novo DataFrame com o resultado e usar os índices e colunas do df1
-    # profit_loss = pd.DataFrame(profit_loss, index=optimized_portfolio.index, columns=price_df.columns)
-    # profit_loss.columns = [col.rsplit('_', 1)[0] + '_profit_loss' for col in profit_loss.columns]
-
-    # Adicionar uma coluna para o lucro ou prejuízo de capital
-    # return optimized_portfolio
-
 surfing_frontier = st.button('Wave Sharpe Ratio')
 if surfing_frontier:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
@@ -849,23 +813,8 @@ if surfing_frontier:
             data['Date'].append(date)
             data['ID'].append(row['ID'])   # Append the ID for each row
 
-    # Creating a new DataFrame
-
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
-    # optimize_df.loc[optimize_df['ID'] == 1, 'Quantity'] = invested_cash * optimize_df.loc[optimize_df['ID'] == 1, 'Weight'] / optimize_df.loc[optimize_df['ID'] == 1, 'Price']
-    
-    # optimize_df = optimize_df.sort_values(by=['Asset', 'Date'])
-
-    # for asset in optimize_df['Asset'].unique():
-    #     asset_rows = optimize_df[optimize_df['Asset'] == asset]
-    #     for i in range(1, len(asset_rows)):
-    #         current_weight = asset_rows.iloc[i]['Weight']
-    #         previous_weight = asset_rows.iloc[i - 1]['Weight']
-
-
-    # session_state.optimized_data = optimize_df.copy()
-    # st.dataframe(session_state.optimized_data)
  
 def optimizeBySharpe(dataframe):
     pd.options.display.float_format = '{:.3f}'.format
@@ -880,7 +829,6 @@ def optimizeBySharpe(dataframe):
     fund = qtT1 * pricesT2
     funds = np.sum(fund)
     maxQtT2 = funds * weightsT2 / pricesT2
-    minQtT2 = funds * weightsT1 / pricesT2
     maxInvestedT2 = maxQtT2 * pricesT2
     optQtT2 = np.sum(maxInvestedT2) * weightsT2 /  pricesT2
     optWeightsT2 = optQtT2 * pricesT2 / np.sum(maxInvestedT2)
@@ -895,8 +843,8 @@ def optimizeBySharpe(dataframe):
              'qtT1', 'optQtT2', 'qtBuyOrSell', 'weightsT1', 
              'optWeightsT2', 'weightsT2']]
     
-    print(f'Total Invested T1: {totalInvestedT1:.3f}')
-    print(f'Available Cash T2: {funds:.3f}')
+    st.markdown(f'**Total Invested T1:** {totalInvestedT1:.3f}')
+    st.markdown(f'**Available Cash T2:** {funds:.3f}')
     return df
    
 if session_state.optimized_data is not None:
