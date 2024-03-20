@@ -905,7 +905,7 @@ if session_state.optimized_data is not None:
 
     dfsToOptimize = []
     resultsList = []
-
+    st.write(max_len)
     # Criar a lista de DataFrames
     for i in range(1, max_len):
         # Crie um DataFrame para cada iteração
