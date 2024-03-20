@@ -907,7 +907,7 @@ if session_state.optimized_data is not None:
     resultsList = []
 
     # Criar a lista de DataFrames
-    for i in range(1, totalOfAssets-1):
+    for i in range(1, max_len):
         # Crie um DataFrame para cada iteração
         df = pd.DataFrame({
             'pricesT1': [item[i-1] for item in variables_price],
@@ -927,7 +927,7 @@ if session_state.optimized_data is not None:
                 lastOptimized = resultsList[i - 1]
                 dfsToOptimize[i]['weightsT1'] = lastOptimized['optWeightsT2'].iloc[0]
                 dfsToOptimize[i]['qtT1'] = lastOptimized['optQtT2'].iloc[0]
-        
+                
         for df in resultsList:
             st.dataframe(df)
         
