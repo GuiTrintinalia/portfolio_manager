@@ -877,8 +877,7 @@ if surfing_frontier:
             
     optimize_df = pd.DataFrame(data)
     st.dataframe(optimize_df)
-    st.write(optimize_df.columns)
-  
+    
     unique_assets = optimize_df['Asset'].unique()
     totalOfAssets = len(unique_assets)
     variables_price = []
@@ -887,34 +886,34 @@ if surfing_frontier:
     max_len = 0
     
     for asset in unique_assets:
-        st.write(asset)
-        mask = (optimize_df['Asset'] == asset)
-        prices = optimize_df.loc[mask, 'Price'].tolist()
-        weights = optimize_df.loc[mask, 'Weight'].tolist()
-        quantities = optimize_df.loc[mask, 'Quantity'].tolist()
+    #     st.write(asset)
+    #     mask = (optimize_df['Asset'] == asset)
+    #     prices = optimize_df.loc[mask, 'Price'].tolist()
+    #     weights = optimize_df.loc[mask, 'Weight'].tolist()
+    #     quantities = optimize_df.loc[mask, 'Quantity'].tolist()
         
-        max_len = max(max_len, len(prices), len(weights), len(quantities))
-        variables_price.append(prices + [None] * (max_len - len(prices)))
-        variables_weight.append(weights + [None] * (max_len - len(weights)))
-        variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
+    #     max_len = max(max_len, len(prices), len(weights), len(quantities))
+    #     variables_price.append(prices + [None] * (max_len - len(prices)))
+    #     variables_weight.append(weights + [None] * (max_len - len(weights)))
+    #     variables_quantity.append(quantities + [None] * (max_len - len(quantities)))
 
-    dfsToOptimize = []
-    resultsList = []
+    # dfsToOptimize = []
+    # resultsList = []
     
     
-    # Criar a lista de DataFrames
-    for i in range(1, max_len):
-        # Crie um DataFrame para cada iteração
-        df = pd.DataFrame({
-            'pricesT1': [item[i-1] for item in variables_price],
-            'pricesT2': [item[i] for item in variables_price],
-            'weightsT1': [item[i-1] for item in variables_weight],
-            'weightsT2': [item[i] for item in variables_weight],
-            'qtT1': [item[i-1] for item in variables_quantity],
-        })
-        st.dataframe(df)
-        dfsToOptimize.append(df)
-        st.dataframe(df)
+    # # Criar a lista de DataFrames
+    # for i in range(1, max_len):
+    #     # Crie um DataFrame para cada iteração
+    #     df = pd.DataFrame({
+    #         'pricesT1': [item[i-1] for item in variables_price],
+    #         'pricesT2': [item[i] for item in variables_price],
+    #         'weightsT1': [item[i-1] for item in variables_weight],
+    #         'weightsT2': [item[i] for item in variables_weight],
+    #         'qtT1': [item[i-1] for item in variables_quantity],
+    #     })
+    #     st.dataframe(df)
+    #     dfsToOptimize.append(df)
+    #     st.dataframe(df)
 
         # for i in range(len(dfsToOptimize)):
         #     optimizedDf = optimizeBySharpe(dfsToOptimize[i])
