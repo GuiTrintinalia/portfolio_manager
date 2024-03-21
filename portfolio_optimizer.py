@@ -863,7 +863,7 @@ if surfing_frontier:
         combined_dfs[i]['weightsT1'] = lastOptimized['optWeightsT2']
         optimizedDf = optimizeBySharpe(combined_dfs[i])
         results.append(optimizedDf)
-    
+    st.write(teste)
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
