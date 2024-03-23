@@ -215,7 +215,7 @@ def return_over_time(df):
     
 def efficient_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken, expected_return, simulations= 1000, resampler='A'):
     return_till_date = return_over_time(df)
-    log_returns = logreturns(df)
+    #log_returns = logreturns(df)
     cov_matrix = df.pct_change().apply(lambda x: np.log(1+x)).cov()
     portfolio_var = cov_matrix.mul(total_shares,axis=0).mul(total_shares,axis=1).sum().sum()
     standard_deviation = np.sqrt(portfolio_var) 
@@ -247,7 +247,7 @@ def efficient_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken
     
     num_assets = len(df.columns)    
 
-    for portfolio in range(simulations):
+    for _ in range(simulations):
         weights = np.random.random(num_assets)
         weights = weights/np.sum(weights)
         portfolio_weights.append(weights)
@@ -268,63 +268,64 @@ def efficient_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken
 
     return simulated_portfolios
 
-def plot_efficient_frontier(simulated_portfolios, risk_free_rate,expected_sharpe,expected_return, risk_taken):
-    
-    for index, row in simulated_portfolios.iterrows():
-        concatenated_values = ''
-        for col in simulated_portfolios.columns[2:]:
-            concatenated_values += col + ': ' + str(row[col]) + ', '
-            concatenated_values = concatenated_values.replace('_Close weight', '')
-    simulated_portfolios['Weights'] = concatenated_values
-
-    
+def plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharpe, expected_return, risk_taken):
     simulated_portfolios = simulated_portfolios.sort_values(by='Volatility')
-    simulated_portfolios['Sharpe_ratio'] = (simulated_portfolios['Returns'] - risk_free_rate)/ simulated_portfolios['Volatility']
-    expected_portfolio = simulated_portfolios[
-    (simulated_portfolios['Sharpe_ratio'] >= expected_sharpe - 0.001) & 
-    (simulated_portfolios['Sharpe_ratio'] <= expected_sharpe + 0.001)]
+    simulated_portfolios['Sharpe_ratio'] = (simulated_portfolios['Returns'] - risk_free_rate) / simulated_portfolios['Volatility']
     
+    # Criar uma coluna 'Weights' contendo os pesos concatenados para cada ponto da fronteira
+    simulated_portfolios['Weights'] = simulated_portfolios.iloc[:, 2:-1].apply(
+        lambda row: ', '.join([f"{asset}: {weight:.4f}" for asset, weight in zip(simulated_portfolios.columns[2:-1], row)]),
+        axis=1
+    )
+
+    frontier = px.scatter(simulated_portfolios, x='Volatility', y='Returns', width=800, height=600, 
+                          title="Markowitz's Efficient Frontier", labels={'Volatility': 'Volatility', 'Returns': 'Return'},
+                          hover_name='Weights')
     
+    max_sharpe_ratio_portfolio = simulated_portfolios.loc[simulated_portfolios['Sharpe_ratio'].idxmax()]
+    frontier.add_trace(go.Scatter(x=[max_sharpe_ratio_portfolio['Volatility']], 
+                                  y=[max_sharpe_ratio_portfolio['Returns']],
+                                  mode='markers',
+                                  marker=dict(color='green', size=10),
+                                  name='Max Sharpe Ratio',
+                                  text=max_sharpe_ratio_portfolio['Weights']))
+
     low_risk_portfolios = simulated_portfolios[
         (simulated_portfolios['Returns'] >= expected_return) & 
         (simulated_portfolios['Volatility'] <= risk_taken)
     ]
-
-    max_sharpe_ratio_portfolio = simulated_portfolios.loc[simulated_portfolios['Sharpe_ratio'].idxmax()]
-    frontier = px.scatter(simulated_portfolios, x='Volatility', y='Returns', width=800, height=600, 
-                        title="Markowitz's Efficient Frontier", labels={'Volatility': 'Volatility', 'Returns': 'Return'},
-                        hover_name='Weights')
-    
-    frontier.add_trace(go.Scatter(x=[simulated_portfolios.iloc[0]['Volatility']], 
-                                y=[simulated_portfolios.iloc[0]['Returns']],
-                                mode='markers',
-                                marker=dict(color='red', size=10),
-                                name='Lower Volatility', ))
-
-
-    frontier.add_trace(go.Scatter(x=[max_sharpe_ratio_portfolio['Volatility']], 
-                              y=[max_sharpe_ratio_portfolio['Returns']],
-                              mode='markers',
-                              marker=dict(color='green', size=10),
-                              name='Max Sharpe Ratio'))
-    
-    if not expected_portfolio.empty:
-        frontier.add_trace(go.Scatter(x=[expected_portfolio['Volatility'].values[0]], 
-                                  y=[expected_portfolio['Returns'].values[0]],
-                                  mode='markers',
-                                  marker=dict(color='orange', size=10),
-                                  name='Expected Sharpe Ratio'))
     
     frontier.add_trace(go.Scatter(x=low_risk_portfolios['Volatility'], 
                                   y=low_risk_portfolios['Returns'],
                                   mode='markers',
                                   marker=dict(color='purple', size=5),
-                                  name='Returns >= Expected Return and Volatility <= Risk Taken'))
+                                  name='Returns >= Expected Return and Volatility <= Risk Taken',
+                                  text=low_risk_portfolios['Weights']))
+    
+    expected_portfolio = simulated_portfolios[
+        (simulated_portfolios['Sharpe_ratio'] >= expected_sharpe - 0.001) & 
+        (simulated_portfolios['Sharpe_ratio'] <= expected_sharpe + 0.001)
+    ]
+    
+    if not expected_portfolio.empty:
+        frontier.add_trace(go.Scatter(x=[expected_portfolio['Volatility'].values[0]], 
+                                      y=[expected_portfolio['Returns'].values[0]],
+                                      mode='markers',
+                                      marker=dict(color='orange', size=10),
+                                      name='Expected Sharpe Ratio',
+                                      text=expected_portfolio['Weights']))
+    
+    frontier.add_trace(go.Scatter(x=[simulated_portfolios.iloc[0]['Volatility']], 
+                                  y=[simulated_portfolios.iloc[0]['Returns']],
+                                  mode='markers',
+                                  marker=dict(color='red', size=10),
+                                  name='Lower Volatility', 
+                                  text=simulated_portfolios.iloc[0]['Weights']))
     
     max_sharpe_ratio_value = simulated_portfolios['Sharpe_ratio'].max()
-
     st.markdown(f'Max Sharpe Ratio: **{max_sharpe_ratio_value:.2f}**')
     st.plotly_chart(frontier)
+    
     
 def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     result_dfs = []
@@ -337,7 +338,7 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
         num_assets = len(df.columns)-2  # Subtracting 'ID' and 'date' columns
 
         annualized_returns = df.drop(columns=['ID', 'date']).pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
-        for portfolio in range(simulations):
+        for _ in range(simulations):
             weights = np.random.random(num_assets)
             weights = weights/np.sum(weights)
             returns = np.dot(weights, annualized_returns)
@@ -375,13 +376,26 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     final_df = pd.concat(result_dfs, ignore_index=True)
 
     return final_df
-	
-def get_max_sharpe_per_id(final_df):
-    final_df_cleaned = final_df.dropna(subset=['Sharpe_ratio'])
-    max_sharpe_rows = final_df_cleaned.loc[final_df_cleaned.groupby('ID')['Sharpe_ratio'].idxmax()]
+def get_max_sharpe_per_id(final_df, max_values, min_values):
+    weight_columns = [column for column in final_df.columns if column.endswith('_Weight')]
+    num_columns = len(weight_columns)
+
+    filtered_indices = set(range(len(final_df)))
+
+    for i in range(num_columns):
+        weight_column = weight_columns[i]
+        min_value = min_values[i]
+        max_value = max_values[i]
+
+        filtered_indices_temp = set(index for index, row in final_df.iterrows() if min_value <= row[weight_column] <= max_value)
+        filtered_indices.intersection_update(filtered_indices_temp)
+
+    filtered_df = final_df.iloc[list(filtered_indices)]
+    max_sharpe_rows = filtered_df.loc[filtered_df.groupby('ID')['Sharpe_ratio'].idxmax()]
+    
     return max_sharpe_rows
 
-## Configuração da página e do título
+
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Portfolio Balancer")
 
@@ -756,13 +770,17 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
 
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
     st.subheader('Backtesting Strategy', divider='rainbow')
-    offset = st.number_input('Please select number of days to jump:', min_value=1, max_value=10000, step=5, value=5)
+    first_sharpe = st.number_input('Please select number of days to obtain the first  round of weights:', min_value=1, max_value=10000, step=15, value=252)
+    offset = st.number_input('Please select number of days to jump:', min_value=1, max_value=10000, step=15, value=30)
+    
     dates_range = session_state.portfolio.index.unique()
     backtest_dfs = []
-    df_id = 1
-    
-    for i in range(0, len(dates_range), offset):
-        starting_date = dates_range[i]  # Define a starting_date para a data inicial do intervalo
+    first_df =  session_state.portfolio.iloc[:first_sharpe]
+    first_df['ID'] = 1
+    first_df['date'] = session_state.portfolio.index[first_sharpe]  # Defina a data para a última data do intervalo
+    df_id = 2
+    for i in range(first_sharpe, len(dates_range), offset):
+        starting_date = dates_range[i] 
         offset_date = dates_range[min(i + offset - 1, len(dates_range) - 1)]  # Garante que offset_date não ultrapasse o final de dates_range
         split_df = session_state.portfolio.loc[starting_date:offset_date]
         split_df['ID'] = df_id
@@ -770,12 +788,31 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
         backtest_dfs.append(split_df)
         df_id += 1
         starting_date = offset_date
+    
+    
+    min_constraints = [0.0] * len(tickers)
+    max_constraints = [1.0] * len(tickers)
 
+    with st.expander("***Optional Constraints***"):
+        st.markdown("""
+            1. Choose min and max constraints for the weights of your assets.
+            
+            2. The selected constraints will be normalized so that weights sum 1. Therefore, you may see weights different from 
+            the constraints you selected, however, they should be proportional. 
+        
+        """)
+
+        for num in range(len(tickers)):
+            min_constraint = st.number_input(f'Select min weight constraint for asset {list(tickers)[num]}', min_value=0.0, max_value=1.0, step=0.05, value = 0.0)
+            max_constraint = st.number_input(f'Select max weight constraint for asset {list(tickers)[num]}', min_value=0.0, max_value=1.0, step=0.05, value = 1.0)
+            min_constraints[num] = min_constraint
+            max_constraints[num] = max_constraint
+            
+            
 def optimizeBySharpe(df):
     pd.options.display.float_format = '{:.3f}'.format
     pricesT2 = df['pricesT2'].values
     qtT1 = df['qtT1'].values
-    weightsT1 = df['weightsT1'].values
     weightsT2 = df['weightsT2'].values
     pricesT1 = df['pricesT1'].values
     investedT1 = pricesT1 * qtT1
@@ -803,21 +840,40 @@ def optimizeBySharpe(df):
     st.markdown(f'**Otimization ROI:** {otimizationROI:.3f}')
     st.markdown(f'**Portfolio ROI:** {portfolioROI:.3f}')
     st.dataframe(df)
-
+    
     return df
 
-surfing_frontier = st.button('Wave Sharpe Ratio')
-if surfing_frontier:
+def returns_till_date(df, invested_cash, price_columns, weight_columns):
+    # Obter as quantidades iniciais para a primeira linha
+    first_row = df.iloc[0]
+    initial_quantities_per_asset = []
+    for price_col, weight_col in zip(price_columns, weight_columns):
+        initial_quantity = invested_cash * first_row[weight_col] / first_row[price_col]
+        initial_quantities_per_asset.append(initial_quantity)
+        
+    initial_quantities = np.array([initial_quantities_per_asset])
+    initial_values = initial_quantities * df[price_columns].values
+    invested_till_date = np.sum(initial_values, axis=1)
+    return_till_date = invested_till_date / invested_cash
+    ROItilldate = pd.DataFrame({'invested_till_date': invested_till_date, 'return_till_date': return_till_date}, index=df.index)
+    st.dataframe(ROItilldate)
+    return ROItilldate 
+
+
+backtesting = st.button('backtest')
+if backtesting:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
-    backtested_df = get_max_sharpe_per_id(optimized_dfs)
+    portfolios_anazlyed = len(optimized_dfs)
+    backtested_df = get_max_sharpe_per_id(optimized_dfs, max_constraints, min_constraints)
     backtested_df.set_index('Date', inplace=True, drop=True)
-    price_columns = [col for col in session_state.data.columns if col.endswith('_Close')]	
-    backtested_df = backtested_df.merge(session_state.data[price_columns], left_index=True, right_index=True, how='left')
-    backtested_df.columns = [col.replace('_Close', '_Price') for col in backtested_df.columns]
-    st.dataframe(backtested_df)
-    
-    price_columns = [col for col in backtested_df.columns if col.endswith('_Price')]
     weight_columns = [col for col in backtested_df.columns if col.endswith('_Weight')]
+    aux = session_state.data.copy()
+    aux.columns = [col.replace('_Close', '_Price') for col in aux.columns] 
+    price_columns = [col for col in aux.columns if col.endswith('_Price')]	
+    backtested_df = backtested_df.merge(aux[price_columns], left_index=True, right_index=True, how='left')
+    roi_df = returns_till_date(backtested_df, invested_cash, price_columns, weight_columns)
+    
+    
     data = {'ID': [] ,'date': [], 'asset': [], 'price': [], 'weight': [], 'quantity': []}
     for date, row in backtested_df.iterrows():
         for price_col, weight_col in zip(price_columns, weight_columns):
@@ -852,18 +908,27 @@ if surfing_frontier:
         combined_df = pd.merge(df_t1, df_t2, on='asset', suffixes=('_t1', '_t2'))
         combined_df['qtT1'] = invested_cash * combined_df['weightsT1'] / combined_df['pricesT1']
         combined_dfs.append(combined_df)
-
-    # first optimization
+    
+    st.markdown(f'***Number of portfolios analyzed:*** {portfolios_anazlyed}')   
+    st.dataframe(backtested_df) 
+    st.markdown(f'***Number of optimizations:*** {len(combined_dfs)}')
+    st.markdown(f"**Return till date:** {roi_df['return_till_date'][1]:.3f}")
     optimizedDf = optimizeBySharpe(combined_dfs[0])
+   
     results.append(optimizedDf)
+
     
     for i in range(1, len(combined_dfs)):
         lastOptimized = results[i - 1]
         combined_dfs[i]['qtT1'] = lastOptimized['optQtT2']
         combined_dfs[i]['weightsT1'] = lastOptimized['optWeightsT2']
+        st.markdown(f"**Return till date:** {roi_df['return_till_date'][i+1]:.3f}")
         optimizedDf = optimizeBySharpe(combined_dfs[i])
         results.append(optimizedDf)
-s
+
+
+    
+
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
     mapping = {'assets': 'data', 'allocation': 'df', 'portfolio': 'portfolio', 'backtest': 'backtest', 'optimized_data': 'optimized_data'}
