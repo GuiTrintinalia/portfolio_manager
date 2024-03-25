@@ -873,7 +873,6 @@ if backtesting:
     backtested_df = backtested_df.merge(aux[price_columns], left_index=True, right_index=True, how='left')
     roi_df = returns_till_date(backtested_df, invested_cash, price_columns, weight_columns)
     
-    
     data = {'ID': [] ,'date': [], 'asset': [], 'price': [], 'weight': [], 'quantity': []}
     for date, row in backtested_df.iterrows():
         for price_col, weight_col in zip(price_columns, weight_columns):
@@ -914,10 +913,7 @@ if backtesting:
     st.markdown(f'***Number of optimizations:*** {len(combined_dfs)}')
     st.markdown(f"**Return till date:** {roi_df['return_till_date'][1]:.3f}")
     optimizedDf = optimizeBySharpe(combined_dfs[0])
-   
     results.append(optimizedDf)
-
-    
     for i in range(1, len(combined_dfs)):
         lastOptimized = results[i - 1]
         combined_dfs[i]['qtT1'] = lastOptimized['optQtT2']
@@ -925,9 +921,6 @@ if backtesting:
         st.markdown(f"**Return till date:** {roi_df['return_till_date'][i+1]:.3f}")
         optimizedDf = optimizeBySharpe(combined_dfs[i])
         results.append(optimizedDf)
-
-
-    
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
