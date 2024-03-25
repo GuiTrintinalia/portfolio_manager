@@ -696,7 +696,7 @@ if remove_nan:
     session_state.data = drop_nan_rows(session_state.data)
 
 if session_state.data is not None:
-    st.markdown(f'**Count of NaN:** {session_state.data.isna().sum().sum()}')
+    st.markdown(f'**Total of missing entries:** {session_state.data.isna().sum().sum()}')
     st.dataframe(session_state.data.isna().sum().to_frame().T)
     st.dataframe(session_state.data)
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
