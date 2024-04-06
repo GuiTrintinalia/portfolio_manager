@@ -670,14 +670,12 @@ commodities_dict = {
     "Sugar #11": "SB=F", "WisdomTree International High D": "GF=F"
 }
 
-
-
 selected_timeframes = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
 
 assets_list = {'commodities':commodities_dict, 
-               'b3_stocs': b3_stocks, '
+               'b3_stocs': b3_stocks,
                'SP500': sp500_dict,
-               'NASDAC100':nasdaq_dict ,
+               'NASDAC100':nasdaq_dict,
                'indexes': indexes_dict,
                'currencies': currencies_dict, 
                'crypto': crypto_dict}
@@ -705,8 +703,7 @@ type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers and st.button("Download data"):
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
     session_state.data = download_data(tickers, selected_timeframes)
-    #session_state.data = asset_mapping(session_state.data, assets_list)
-
+    
 frequency = {
         'Daily': 'D',
         'Weekly': 'W',
