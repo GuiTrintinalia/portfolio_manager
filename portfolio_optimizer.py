@@ -1,26 +1,22 @@
+# basic pyhton librarioes
 import streamlit as st
 import pandas as pd
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt 
-import plotly.express as px
+from datetime import  date
+
+# libraries to retrieve and download data
 import requests
-import json
-import time
-import pickle
-import datetime
-from datetime import datetime, timedelta, date
-from itertools import combinations
-from multiprocessing import Pool
-import time
-import yfinance  as yf
-import plotly.graph_objects as go
-import io
 from io import BytesIO
-import pyarrow.parquet as pq
+import yfinance  as yf
 import base64
-import pulp
-from pulp import LpMaximize, LpProblem, LpVariable
+
+# ploting libraries
+import plotly.express as px
+import plotly.graph_objects as go
+
+# for combinations
+import itertools
+
 
 
 def candlestick_chart(dfs, selected_var):
@@ -58,14 +54,6 @@ def candlestick_chart(dfs, selected_var):
     fig = go.Figure(data=traces, layout=layout)
     return fig
 
-
-def style_dataframe_with_blue(df):
-    styled_df = df.style.set_table_styles([
-        {'selector': 'th', 'props': [('background-color', 'blue'), ('color', 'white')]},
-        {'selector': 'td', 'props': [('border', '1px solid blue'), ('color', 'blue')]}
-    ])
-    return styled_df
-
 def download_data(data, period='1y'):
     dfs = []
     if isinstance(data, dict):
@@ -76,25 +64,21 @@ def download_data(data, period='1y'):
             hist.index = pd.to_datetime(hist.index.map(lambda x: x.strftime('%Y-%m-%d')))
             dfs.append(hist)
     elif isinstance(data, list):
-        # If input is a list, assume tickers directly without names
         for ticker in data:
             ticker_obj = yf.Ticker(ticker)
             hist = ticker_obj.history(period=period)
             hist.columns = [f"{ticker}_{col}" for col in hist.columns]  # Add prefix to the name
             hist.index = pd.to_datetime(hist.index.map(lambda x: x.strftime('%Y-%m-%d')))
             dfs.append(hist)
-    
-    # Combine DataFrames
+
     combined_df = pd.concat(dfs, axis=1, join='outer')  # Use join='outer' to handle different time indices
     return combined_df
-
 
 def upload_file(file):
     df = pd.read_excel(file) if file.name.endswith('xlsx') else pd.read_csv(file)
     df.set_index('Date', inplace = True, drop = True)
     df.index = pd.to_datetime(df.index)
     return df
-
 
 def download_dfs(session_state, download_option, mapping):
     attribute_name = mapping.get(download_option)
@@ -113,22 +97,11 @@ def download_dfs(session_state, download_option, mapping):
         st.error(f"Invalid download option: {download_option}")
         return None
     
-    
 def load_data_from_github(url):
     response = requests.get(url)
     content = BytesIO(response.content)
     data = pd.read_pickle(content)
     return data
-
-def asset_mapping(df, assets_list):
-    mapped_df = df.copy()
-    for name, ticker in assets_list.items():
-        ticker_columns = [col for col in df.columns if col.startswith(f"{ticker}_")]
-        if ticker_columns:
-            mapped_ticker = f"{name}_"
-            mapped_df = mapped_df.rename(columns={ticker_col: ticker_col.replace(f"{ticker}_", f"{mapped_ticker}_") for ticker_col in ticker_columns})
-
-    return mapped_df
 
 def date_resample(df, period='M', aggregation='sum'):
     result_series = df.resample(period).agg(aggregation)
@@ -186,36 +159,35 @@ def compute_investments(df, tickers, total_shares, available_cash):
 
     return investments[['Ticker', 'Price', 'Papers', 'Share %', 'Invested', 'Cash']]
 
-
 def logreturns(df):
+    df.columns = df.columns.str.split('_').str[0]
     log_returns  = np.log(df)
     log_returns = df.iloc[:, 0:].pct_change()
     fig = px.line(log_returns, x=log_returns.index, y=log_returns.columns[0:],
-                  labels={'value': 'ln'},
-                  title='Ln Returns')
+                  labels={'value': 'log'},
+                  title='log returns')
     fig.update_layout(legend_title_text='Assets')
     st.plotly_chart(fig)
 
     return log_returns
 
-
 def return_over_time(df):
-    result_df = pd.DataFrame()
-    
+    return_df = pd.DataFrame()
+    df.columns = df.columns.str.split('_').str[0]
     for col in df.columns:
-        result_df[col + '_Return_over_time'] = df[col] / df[col].iloc[0] -1
+        return_df[col] = df[col] / df[col].iloc[0] -1
         
-    fig = px.line(result_df, x=result_df.index, y=result_df.columns[0:],
+    fig = px.line(return_df, x=return_df.index, y=return_df.columns[0:],
                   labels={'value': 'Returns to Date'},
                   title='returns')
     fig.update_layout(legend_title_text='Assets')
     st.plotly_chart(fig)
-    return result_df
     
     
-def efficient_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken, expected_return, simulations= 1000, resampler='A'):
-    return_till_date = return_over_time(df)
-    #log_returns = logreturns(df)
+def efficient_frontier(df, trading_days,total_shares, risk_free_rate, simulations= 1000, resampler='A'):
+    return_over_time(df)
+    logreturns(df)
+    
     cov_matrix = df.pct_change().apply(lambda x: np.log(1+x)).cov()
     portfolio_var = cov_matrix.mul(total_shares,axis=0).mul(total_shares,axis=1).sum().sum()
     standard_deviation = np.sqrt(portfolio_var) 
@@ -223,7 +195,8 @@ def efficient_frontier(df, trading_days,total_shares, risk_free_rate, risk_taken
     simple_annualized_risk = np.exp(annualized_risk) - 1
     simple_risk = np.exp(annualized_risk) - 1
     st.markdown(f'Annualized portfolio risk:  **{simple_risk:.4f}**')
-    annualized_returns = df.resample(resampler).last().pct_change().mean()
+    annualized_returns = df.resample(resampler).last()
+    st.dataframe(annualized_returns)
     annualized_returns = df.pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
     annualized_returns = annualized_returns.rename('Log Returns')
     simple_returns = np.exp(annualized_returns) - 1
@@ -272,7 +245,6 @@ def plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharp
     simulated_portfolios = simulated_portfolios.sort_values(by='Volatility')
     simulated_portfolios['Sharpe_ratio'] = (simulated_portfolios['Returns'] - risk_free_rate) / simulated_portfolios['Volatility']
     
-    # Criar uma coluna 'Weights' contendo os pesos concatenados para cada ponto da fronteira
     simulated_portfolios['Weights'] = simulated_portfolios.iloc[:, 2:-1].apply(
         lambda row: ', '.join([f"{asset}: {weight:.4f}" for asset, weight in zip(simulated_portfolios.columns[2:-1], row)]),
         axis=1
@@ -299,7 +271,7 @@ def plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharp
                                   y=low_risk_portfolios['Returns'],
                                   mode='markers',
                                   marker=dict(color='purple', size=5),
-                                  name='Returns >= Expected Return and Volatility <= Risk Taken',
+                                  name='Expected Return & Risk Taken',
                                   text=low_risk_portfolios['Weights']))
     
     expected_portfolio = simulated_portfolios[
@@ -319,8 +291,15 @@ def plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharp
                                   y=[simulated_portfolios.iloc[0]['Returns']],
                                   mode='markers',
                                   marker=dict(color='red', size=10),
-                                  name='Lower Volatility', 
+                                  name='Min Volatility', 
                                   text=simulated_portfolios.iloc[0]['Weights']))
+    
+    frontier.update_layout(legend=dict(
+                           orientation='h',
+                           yanchor='top',
+                           y=1.1,
+                           xanchor='center',
+                           x=0.5))
     
     max_sharpe_ratio_value = simulated_portfolios['Sharpe_ratio'].max()
     st.markdown(f'Max Sharpe Ratio: **{max_sharpe_ratio_value:.2f}**')
@@ -395,6 +374,54 @@ def get_max_sharpe_per_id(final_df, max_values, min_values):
     
     return max_sharpe_rows
 
+def optimizeBySharpe(df):
+    pd.options.display.float_format = '{:.3f}'.format
+    pricesT2 = df['pricesT2'].values
+    qtT1 = df['qtT1'].values
+    weightsT2 = df['weightsT2'].values
+    pricesT1 = df['pricesT1'].values
+    investedT1 = pricesT1 * qtT1
+    totalInvestedT1 = np.sum(investedT1)
+    fund = qtT1 * pricesT2
+    funds = np.sum(fund)
+    maxQtT2 = funds * weightsT2 / pricesT2
+    maxInvestedT2 = maxQtT2 * pricesT2
+    optQtT2 = np.sum(maxInvestedT2) * weightsT2 /  pricesT2
+    optWeightsT2 = optQtT2 * pricesT2 / np.sum(maxInvestedT2)
+    otimizationROI = (funds /totalInvestedT1)
+    portfolioROI = funds / invested_cash
+    df['optWeightsT2'] = optWeightsT2
+    df['optQtT2'] = optQtT2
+    df['qtBuyOrSell'] = abs(optQtT2 - qtT1)
+    df['investedT1'] = investedT1
+    df['investedT2'] = fund
+    
+    df = df[['pricesT1', 'pricesT2', 'investedT1', 'investedT2',
+             'qtT1', 'optQtT2', 'qtBuyOrSell', 'weightsT1', 
+             'optWeightsT2', 'weightsT2']]
+    
+    st.markdown(f'**Total Invested T1:** {totalInvestedT1:.3f}')
+    st.markdown(f'**Available Cash T2:** {funds:.3f}')
+    st.markdown(f'**Otimization ROI:** {otimizationROI:.3f}')
+    st.markdown(f'**Portfolio ROI:** {portfolioROI:.3f}')
+    st.dataframe(df)
+    
+    return df
+
+def returns_till_date(df, invested_cash, price_columns, weight_columns):
+    first_row = df.iloc[0]
+    initial_quantities_per_asset = []
+    for price_col, weight_col in zip(price_columns, weight_columns):
+        initial_quantity = invested_cash * first_row[weight_col] / first_row[price_col]
+        initial_quantities_per_asset.append(initial_quantity)
+        
+    initial_quantities = np.array([initial_quantities_per_asset])
+    initial_values = initial_quantities * df[price_columns].values
+    invested_till_date = np.sum(initial_values, axis=1)
+    return_till_date = invested_till_date / invested_cash
+    ROItilldate = pd.DataFrame({'invested_till_date': invested_till_date, 'return_till_date': return_till_date}, index=df.index)
+    st.dataframe(ROItilldate)
+    return ROItilldate 
 
 st.set_page_config(page_title='Portfolio Balancer', layout = 'wide', initial_sidebar_state = 'auto')
 st.title("Portfolio Balancer")
@@ -491,7 +518,7 @@ commodities_dict = { "BRENT CRUDE OIL LAST DAY FINANC": "BZ=F", "COCOA": "CC=F",
 b3_stocks =         {
                     "3M": "MMMC34.SA", "ABBOTT LABORATORIES": "ABTT34.SA", "AES BRASIL": "AESB3.SA", "AF INVEST": "AFHI11.SA",
                     "AFLUENTE T": "AFLT3.SA", "AGRIBRASIL": "GRAO3.SA", "AGROGALAXY": "AGXY3.SA", "ALIANSCESONAE": "ALSO3.SA",
-                    "ALLIAR": "AALR3.SA", "ALPER": "APER3.SA", "ALPHABET": "GOGL35.SA", "ALUPAR INVESTIMENTO": "ALUP4.SA",
+                    "ALLIAR": "AALR3.SA", "ALPER": "APER3.SA", "GOOGLE": "GOGL35.SA", "ALUPAR INVESTIMENTO": "ALUP4.SA",
                     "AMC ENTERT H": "A2MC34.SA", "AMERICAN EXPRESS": "AXPB34.SA", "APPLE": "AAPL34.SA", "ARCELOR": "ARMT34.SA",
                     "ATT INC": "ATTB34.SA", "AUREN ENERGIA": "AURE3.SA", "AVALARA INC": "A2VL34.SA", "AVON": "AVON34.SA",
                     "BANCO DO BRASIL": "BBAS3.SA", "BANCO INTER": "BIDI3.SA", "BANCO MERCANTIL DE INVESTIMENTOS": "BMIN3.SA",
@@ -570,7 +597,7 @@ sp500_dict = {
     '3M': 'MMM', 'A. O. SMITH': 'AOS', 'ABBOTT': 'ABT', 'ABBVIE': 'ABBV', 'ACCENTURE': 'ACN', 'ADOBE INC.': 'ADBE',
     'ADVANCED MICRO DEVICES': 'AMD', 'AES CORPORATION': 'AES', 'AFLAC': 'AFL', 'AGILENT TECHNOLOGIES': 'A', 'AIR PRODUCTS AND CHEMICALS': 'APD',
     'AIRBNB': 'ABNB', 'AKAMAI': 'AKAM', 'ALBEMARLE CORPORATION': 'ALB', 'ALEXANDRIA REAL ESTATE EQUITIES': 'ARE', 'ALIGN TECHNOLOGY': 'ALGN',
-    'ALLEGION': 'ALLE', 'ALLIANT ENERGY': 'LNT', 'ALLSTATE': 'ALL', 'ALPHABET INC. (CLASS A)': 'GOOGL', 'ALPHABET INC. (CLASS C)': 'GOOG',
+    'ALLEGION': 'ALLE', 'ALLIANT ENERGY': 'LNT', 'ALLSTATE': 'ALL', 'GOOGLE': 'GOOGL', 'GOOGLE': 'GOOG',
     'ALTRIA': 'MO', 'AMAZON': 'AMZN', 'AMCOR': 'AMCR', 'AMEREN': 'AEE', 'AMERICAN AIRLINES GROUP': 'AAL', 'AMERICAN ELECTRIC POWER': 'AEP',
     'AMERICAN EXPRESS': 'AXP', 'AMERICAN INTERNATIONAL GROUP': 'AIG', 'AMERICAN TOWER': 'AMT', 'AMERICAN WATER WORKS': 'AWK', 'AMERIPRISE FINANCIAL': 'AMP',
     'AMETEK': 'AME', 'AMGEN': 'AMGN', 'AMPHENOL': 'APH', 'ANALOG DEVICES': 'ADI', 'ANSYS': 'ANSS', 'AON': 'AON',
@@ -613,7 +640,7 @@ sp500_dict = {
 }
 
 nasdaq_dict = {
-    'Adobe Inc.': 'ADBE', 'ADP': 'ADP', 'Airbnb': 'ABNB', 'Alphabet Inc. (Class A)': 'GOOGL', 'Alphabet Inc. (Class C)': 'GOOG', 'Amazon': 'AMZN',
+    'Adobe Inc.': 'ADBE', 'ADP': 'ADP', 'Airbnb': 'ABNB', 'GOOGLE': 'GOOGL', 'GOOGLE': 'GOOG', 'Amazon': 'AMZN',
     'Advanced Micro Devices Inc.': 'AMD', 'American Electric Power': 'AEP', 'Amgen': 'AMGN', 'Analog Devices': 'ADI', 'Ansys': 'ANSS', 'Apple Inc.': 'AAPL',
     'Applied Materials': 'AMAT', 'ASML Holding': 'ASML', 'AstraZeneca': 'AZN', 'Atlassian': 'TEAM', 'Autodesk': 'ADSK', 'Baker Hughes': 'BKR',
     'Biogen': 'BIIB', 'Booking Holdings': 'BKNG', 'Broadcom Inc.': 'AVGO', 'Cadence Design Systems': 'CDNS', 'CDW Corporation': 'CDW',
@@ -659,7 +686,7 @@ type_tickers = st.text_input('Enter Tickers (comma-separated):')
 if type_tickers and st.button("Download data"):
     tickers = [ticker.strip() for ticker in type_tickers.split(',')]
     session_state.data = download_data(tickers, selected_timeframes)
-    session_state.data = asset_mapping(session_state.data, assets_list)
+    #session_state.data = asset_mapping(session_state.data, assets_list)
 
 frequency = {
         'Daily': 'D',
@@ -764,7 +791,7 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     st.markdown(f'Expected Sharpe Ratio: **{expected_sharpe:.2f}**')
     run_simulations = st.button('Run simulations')
     if run_simulations:
-        simulated_portfolios = efficient_frontier(session_state.portfolio, trading_days, total_shares, risk_free_rate, risk_taken, expected_return, simulations, resample_list)
+        simulated_portfolios = efficient_frontier(session_state.portfolio, trading_days, total_shares, risk_free_rate, simulations, resample_list)
         plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharpe,expected_return, risk_taken)
         
 
@@ -807,59 +834,7 @@ if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2
             max_constraint = st.number_input(f'Select max weight constraint for asset {list(tickers)[num]}', min_value=0.0, max_value=1.0, step=0.05, value = 1.0)
             min_constraints[num] = min_constraint
             max_constraints[num] = max_constraint
-            
-            
-def optimizeBySharpe(df):
-    pd.options.display.float_format = '{:.3f}'.format
-    pricesT2 = df['pricesT2'].values
-    qtT1 = df['qtT1'].values
-    weightsT2 = df['weightsT2'].values
-    pricesT1 = df['pricesT1'].values
-    investedT1 = pricesT1 * qtT1
-    totalInvestedT1 = np.sum(investedT1)
-    fund = qtT1 * pricesT2
-    funds = np.sum(fund)
-    maxQtT2 = funds * weightsT2 / pricesT2
-    maxInvestedT2 = maxQtT2 * pricesT2
-    optQtT2 = np.sum(maxInvestedT2) * weightsT2 /  pricesT2
-    optWeightsT2 = optQtT2 * pricesT2 / np.sum(maxInvestedT2)
-    otimizationROI = (funds /totalInvestedT1)
-    portfolioROI = funds / invested_cash
-    df['optWeightsT2'] = optWeightsT2
-    df['optQtT2'] = optQtT2
-    df['qtBuyOrSell'] = abs(optQtT2 - qtT1)
-    df['investedT1'] = investedT1
-    df['investedT2'] = fund
-    
-    df = df[['pricesT1', 'pricesT2', 'investedT1', 'investedT2',
-             'qtT1', 'optQtT2', 'qtBuyOrSell', 'weightsT1', 
-             'optWeightsT2', 'weightsT2']]
-    
-    st.markdown(f'**Total Invested T1:** {totalInvestedT1:.3f}')
-    st.markdown(f'**Available Cash T2:** {funds:.3f}')
-    st.markdown(f'**Otimization ROI:** {otimizationROI:.3f}')
-    st.markdown(f'**Portfolio ROI:** {portfolioROI:.3f}')
-    st.dataframe(df)
-    
-    return df
-
-def returns_till_date(df, invested_cash, price_columns, weight_columns):
-    # Obter as quantidades iniciais para a primeira linha
-    first_row = df.iloc[0]
-    initial_quantities_per_asset = []
-    for price_col, weight_col in zip(price_columns, weight_columns):
-        initial_quantity = invested_cash * first_row[weight_col] / first_row[price_col]
-        initial_quantities_per_asset.append(initial_quantity)
-        
-    initial_quantities = np.array([initial_quantities_per_asset])
-    initial_values = initial_quantities * df[price_columns].values
-    invested_till_date = np.sum(initial_values, axis=1)
-    return_till_date = invested_till_date / invested_cash
-    ROItilldate = pd.DataFrame({'invested_till_date': invested_till_date, 'return_till_date': return_till_date}, index=df.index)
-    st.dataframe(ROItilldate)
-    return ROItilldate 
-
-
+ 
 backtesting = st.button('backtest')
 if backtesting:
     optimized_dfs = backtest_frontier(backtest_dfs, risk_free_rate, trading_days)
@@ -914,7 +889,7 @@ if backtesting:
     st.markdown(f'***Number of optimizations:*** {len(combined_dfs)}')
     st.markdown(f"**Return till date:** {roi_df['return_till_date'][1]:.3f}")
     optimizedDf = optimizeBySharpe(combined_dfs[0])
-   
+    st.markdown(f"**Return till date:** {roi_df['return_till_date'][1]:.3f}")
     results.append(optimizedDf)
 
     
@@ -925,9 +900,6 @@ if backtesting:
         st.markdown(f"**Return till date:** {roi_df['return_till_date'][i+1]:.3f}")
         optimizedDf = optimizeBySharpe(combined_dfs[i])
         results.append(optimizedDf)
-
-
-    
 
 if session_state.df is not None or session_state.data is not None or session_state.portfolio is not None or session_state.backtest is not None or session_state.optimized_data is not None:
     st.subheader("Downloads:", divider='rainbow')
@@ -941,3 +913,41 @@ if session_state.df is not None or session_state.data is not None or session_sta
                 st.markdown(download_link, unsafe_allow_html=True)
     else:
         st.error("Opção de download inválida.")
+
+def generate_combinations(dictionary, assets_per_portfolio, combinations_limit=10000):
+    assets = list(dictionary.values())
+    combinations = []
+    for combination in itertools.combinations(assets, assets_per_portfolio):
+        combinations.append(combination)
+        if len(combinations) >= combinations_limit:
+            break
+    return combinations
+
+def download_portfolios(data, period='5y'):
+    dfs = {}
+    tickers_with_errors = []
+    
+    if isinstance(data, dict):
+        for name, ticker in data.items():
+            try:
+                ticker_obj = yf.Ticker(ticker)
+                hist = ticker_obj.history(period=period)
+                hist.columns = [f"{name}_{col}" for col in hist.columns]
+                hist.index = pd.to_datetime(hist.index.map(lambda x: x.strftime('%Y-%m-%d')))
+                dfs[name] = hist
+            except Exception as e:
+                print(f"Error occurred while downloading data for {name}: {e}")
+                tickers_with_errors.append(ticker)
+    elif isinstance(data, list):
+        for ticker in data:
+            try:
+                ticker_obj = yf.Ticker(ticker)
+                hist = ticker_obj.history(period=period)
+                hist.columns = [f"{ticker}_{col}" for col in hist.columns]
+                hist.index = pd.to_datetime(hist.index.map(lambda x: x.strftime('%Y-%m-%d')))
+                dfs[ticker] = hist
+            except Exception as e:
+                print(f"Error occurred while downloading data for {ticker}: {e}")
+                tickers_with_errors.append(ticker)
+    
+    return dfs, tickers_with_errors
