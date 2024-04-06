@@ -659,10 +659,29 @@ nasdaq_dict = {
     'Warner Bros. Discovery': 'WBD', 'Workday, Inc.': 'WDAY', 'Xcel Energy': 'XEL', 'Zscaler': 'ZS',
 }
 
+commodities_dict = {
+    "Brent Crude Oil": "BZ=F", "Cocoa": "CC=F", "Coffee": "KC=F", "Copper": "HG=F", 
+    "Corn Futures": "ZC=F", "Cotton": "CT=F", "Heating Oil": "HO=F", "KC HRW Wheat Futures": "KE=F", 
+    "Lean Hogs Futures": "HE=F", "Live Cattle Futures": "LE=F", "Mont Belvieu LDH Propane (OPIS)": "B0=F", 
+    "Natural Gas": "NG=F", "Orange Juice": "OJ=F", "OURO": "GC=F", "Oat Futures": "ZO=F", 
+    "Palladium": "PA=F", "PETROLEO CRU": "CL=F", "Platinum": "PL=F", "RBOB Gasoline": "RB=F", 
+    "Random Length Lumber Futures": "LBS=F", "Rough Rice Futures": "ZR=F", "Silver": "SI=F", 
+    "Soybean Futures": "ZS=F", "Soybean Oil Futures": "ZL=F", "S&P Composite 1500 ESG Tilted I": "ZM=F", 
+    "Sugar #11": "SB=F", "WisdomTree International High D": "GF=F"
+}
+
+
 
 selected_timeframes = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
 
-assets_list = {'CURRENCIES': currencies_dict, 'CRYPTO': crypto_dict, 'B3_STOCKS': b3_stocks, 'SP500': sp500_dict, 'NASDAC100':nasdaq_dict ,'indexes': indexes_dict}
+assets_list = {'commodities':commodities_dict, 
+               'b3_stocs': b3_stocks, '
+               'SP500': sp500_dict,
+               'NASDAC100':nasdaq_dict ,
+               'indexes': indexes_dict,
+               'currencies': currencies_dict, 
+               'crypto': crypto_dict}
+
 
 selected_dict_names = st.multiselect('Select dictionaries to combine', list(assets_list.keys()))
 combined_dict = {}
