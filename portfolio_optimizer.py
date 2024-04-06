@@ -723,7 +723,7 @@ if remove_nan:
     session_state.data = drop_nan_rows(session_state.data)
 
 if session_state.data is not None:
-    st.markdown(f'**Count of NaN:** {session_state.data.isna().sum().sum()}')
+    st.markdown(f'**Total of missing entries:** {session_state.data.isna().sum().sum()}')
     st.dataframe(session_state.data.isna().sum().to_frame().T)
     st.dataframe(session_state.data)
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
@@ -848,7 +848,6 @@ if backtesting:
     backtested_df = backtested_df.merge(aux[price_columns], left_index=True, right_index=True, how='left')
     roi_df = returns_till_date(backtested_df, invested_cash, price_columns, weight_columns)
     
-    
     data = {'ID': [] ,'date': [], 'asset': [], 'price': [], 'weight': [], 'quantity': []}
     for date, row in backtested_df.iterrows():
         for price_col, weight_col in zip(price_columns, weight_columns):
@@ -891,8 +890,6 @@ if backtesting:
     optimizedDf = optimizeBySharpe(combined_dfs[0])
     st.markdown(f"**Return till date:** {roi_df['return_till_date'][1]:.3f}")
     results.append(optimizedDf)
-
-    
     for i in range(1, len(combined_dfs)):
         lastOptimized = results[i - 1]
         combined_dfs[i]['qtT1'] = lastOptimized['optQtT2']
