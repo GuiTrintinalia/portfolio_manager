@@ -517,7 +517,7 @@ commodities_dict = { "BRENT CRUDE OIL LAST DAY FINANC": "BZ=F", "COCOA": "CC=F",
                 }
 b3_stocks =   {
                     "3m": "MMMC34.SA", "Aes brasil": "AESB3.SA", "Af invest": "AFHI11.SA", "Afluente t": "AFLT3.SA", "Agribrasil": "GRAO3.SA",
-                    "Agogalaxy": "AGXY3.SA", "Alianscesonae": "ALSO3.SA", "Alliar": "AALR3.SA", "Alper": "APER3.SA", "Google": "GOGL35.SA",
+                    "Agogalaxy": "AGXY3.SA", "Alliar": "AALR3.SA", "Alper": "APER3.SA", "Google": "GOGL35.SA",
                     "Alupar investimento": "ALUP4.SA", "American express": "AXPB34.SA", "Apple": "AAPL34.SA", "Arcelor": "ARMT34.SA",
                     "Att inc": "ATTB34.SA", "Auren energia": "AURE3.SA", "Banco do brasil": "BBAS3.SA", "Banco mercantil de investimentos": "BMIN3.SA",
                     "Banco pan": "BPAN4.SA", "Bank america": "BOAC34.SA", "Banpara": "BPAR3.SA", "Banrisul": "BRSR3.SA", "Baumer": "BALM3.SA",
