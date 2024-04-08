@@ -516,7 +516,7 @@ commodities_dict = { "BRENT CRUDE OIL LAST DAY FINANC": "BZ=F", "COCOA": "CC=F",
                     "SUGAR": "SB=F", "WISDOMTREE INTERNATIONAL HIGH D": "GF=F"
                 }
 
-b3_stocks =   {
+b3_stocks = {
                         "3m": "MMMC34.SA", 
                         "Aes brasil": "AESB3.SA", 
                         "Af invest": "AFHI11.SA", 
@@ -597,7 +597,6 @@ b3_stocks =   {
                         "Ft nat gas": "BFCG39.SA", 
                         "Ft nyse biot drn": "BFBI39.SA",
                         "Ft risi divid": "BFDA39.SA", 
-                        "Ft tech alph": "BFTA39.SA", 
                         "G2d investments": "G2DI33.SA", 
                         "Ge": "GEOO34.SA", 
                         "General shopping": "GSHP3.SA",
@@ -613,7 +612,6 @@ b3_stocks =   {
                         "Ibm": "IBMB34.SA", 
                         "Iguatemi s.a.": "IGTI3.SA", 
                         "Infracommerce": "IFCM3.SA", 
-                        "Instituto hermes pardini sa": "PARD3.SA", 
                         "Intel": "ITLC34.SA",
                         "Investo alug": "ALUG11.SA", 
                         "Investo ustk": "USTK11.SA", 
@@ -641,7 +639,6 @@ b3_stocks =   {
                         "Mrv engenharia": "MRVE3.SA", 
                         "Natura": "NTCO3.SA",
                         "Netflix": "NFLX34.SA", 
-                        "Novabasidi": "NVBI3.SA", 
                         "Oi": "OIBR3.SA", 
                         "Oracle": "ORCL34.SA", 
                         "Pão de açúcar": "PCAR3.SA",
@@ -659,7 +656,6 @@ b3_stocks =   {
                         "Rossi": "RSID3.SA", 
                         "Rumo s.a.": "RAIL3.SA", 
                         "Santander": "SANB11.SA", 
-                        "Sinqia": "SQIA3.SA",
                         "Telefônica": "VIVT3.SA", 
                         "Tim": "TIMS3.SA", 
                         "Totvs": "TOTS3.SA", 
@@ -674,7 +670,6 @@ b3_stocks =   {
                         "Whirlpool": "WHRL3.SA", 
                         "Yduqs": "YDUQ3.SA"
                     }
-
 
 indexes_dict =     {
                     'S&P GSCI': 'GD=F', 'IBOVESPA': '^BVSP', 'S&P/CLX IPSA': '^IPSA',
