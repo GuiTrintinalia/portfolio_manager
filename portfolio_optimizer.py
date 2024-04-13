@@ -309,7 +309,7 @@ def plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharp
 def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     result_dfs = []
     for df in df_list:
-        cov_matrix = df.drop(columns=['ID', 'date']).pct_change().apply(lambda x: np.log(1 + x)).cov()
+        cov_matrix = df.drop(columns=['ID', 'date']).pct_change().apply(lambda x: np.log(1 + x)).cov() * trading_days
         portfolio_returns = [] 
         portfolio_variance = [] 
         portfolio_weights = [] 
@@ -317,7 +317,7 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
         num_assets = len(df.columns)-2  # Subtracting 'ID' and 'date' columns
 
         annualized_returns = df.drop(columns=['ID', 'date']).pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
-        for _ in range(simulations):
+        for _ in range(simulation0s):
             weights = np.random.random(num_assets)
             weights = weights/np.sum(weights)
             returns = np.dot(weights, annualized_returns)
