@@ -858,6 +858,8 @@ if session_state.data is not None:
     st.dataframe(session_state.data)
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
     tickers  = set(tickers)
+    st.dataframe(tickers)
+
 
 st.subheader('Assets allocation', divider='rainbow')
 with st.expander("See explanation"):
