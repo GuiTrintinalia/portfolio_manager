@@ -69,7 +69,7 @@ def download_data(data, period='1y'):
             hist.index = pd.to_datetime(hist.index.map(lambda x: x.strftime('%Y-%m-%d')))
             dfs.append(hist)
 
-    combined_df = pd.concat(dfs, axis=1, join='outer')  # Use join='outer' to handle different time indices
+    combined_df = pd.concat(dfs, axis=1, join='inner')  # Use join='outer' to handle different time indices
     return combined_df
 
 def upload_file(file):
