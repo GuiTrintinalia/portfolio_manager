@@ -889,7 +889,7 @@ if session_state.data is not None:
             load_weights = st.button('Load weights')
             if load_weights:
                 fill_weights = pd.DataFrame({'Ticker': tickers, 'Weights': np.nan})
-		st.dataframe(fill_weights)
+                st.dataframe(fill_weights)
                 weights_df = st.experimental_data_editor(fill_weights)
                 editions = weights_df.loc[weights_df['Weights'].idxmax()]['Ticker']
             else:
