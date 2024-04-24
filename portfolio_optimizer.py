@@ -892,11 +892,11 @@ invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=
 if session_state.data is not None:
     load_weights = st.button('Load weights')
     if load_weights:
-    	weights_df = st.experimental_data_editor(tickers_df)
-    	while not weights_df.empty and round(np.sum(weights_df['Weights'])) == 1:
-        	total_shares.append(weights_df['Weights'])
-        	st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
-
+        weights_df = st.experimental_data_editor(tickers_df)
+        if round(np.sum(weights_df['Weights'])) == 1:
+            total_shares.append(weights_df['Weights'])
+        else:
+            st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
     else:
         try:
             if 'tickers' in globals() and tickers is not None:
@@ -913,8 +913,8 @@ if session_state.data is not None:
                     st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
                 else:
                     st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
-        except NameError:
-            st.write("Please download tickers before continuing.")
+            except NameError:
+                st.write("Please download tickers before continuing.")
 
 
 if session_state.df is not None:
