@@ -235,7 +235,7 @@ def efficient_frontier(df, trading_days,total_shares, risk_free_rate, simulation
         data[symbol+' weight'] = [w[counter] for w in portfolio_weights]
     
     simulated_portfolios  = pd.DataFrame(data)
-    simulated_portfolios = simulated_portfolios.round(4)
+    simulated_portfolios = simulated_portfolios.round(6)
 
     return simulated_portfolios
 
