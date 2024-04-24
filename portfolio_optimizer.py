@@ -905,17 +905,16 @@ if session_state.data is not None:
                     total_shares.append(share)
                     allocated_shares = sum(total_shares)
                     shares_to_allocate = 1 - allocated_shares
-
-                if allocated_shares == 1.0:
-                    st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-                    session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-                elif 0.0 < allocated_shares < 1.0:
+                if 0.0 < allocated_shares < 1.0:
                     st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
                 else:
                     st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
-            except NameError:
-                st.write("Please download tickers before continuing.")
+        except NameError:
+            st.write("Please download tickers before continuing.")
 
+    if round(sum(total_shares)) == 1: 
+        st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
+        session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
 
 if session_state.df is not None:
    st.dataframe(session_state.df)
