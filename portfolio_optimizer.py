@@ -891,12 +891,15 @@ invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=
 
 if session_state.data is not None:
     try:
-        if 'tickers' in globals() and tickers is not None:
-            load_weights = st.button('Load weights')
-            if load_weights:
-                weights_df = st.experimental_data_editor(tickers_df)
-            else:
-                for ticker in tickers:
+        load_weights = st.button('Load weights')
+        if load_weights:
+    		weights_df = st.experimental_data_editor(tickers_df)
+    		if not weights_df.empty and round(np.sum(weights_df['Weights'])) == 1:
+        		total_shares.append(weights_df['Weights'])
+			
+        else:
+           if 'tickers' in globals() and tickers is not None:
+		for ticker in tickers:
                     share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
                     total_shares.append(share)
                     allocated_shares = sum(total_shares)
