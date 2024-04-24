@@ -892,12 +892,15 @@ invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=
 if session_state.data is not None:
     load_weights = st.button('Load weights')
     if load_weights:
-        weights_df = st.experimental_data_editor(tickers_df)
-        if round(np.sum(weights_df['Weights'])) == 1:
-            total_shares.append(weights_df['Weights'])
-            session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-        else:
-            st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
+	    while True:
+	        weights_df = st.experimental_data_editor(tickers_df)
+	        if round(np.sum(weights_df['Weights'])) == 1:
+	            total_shares.append(weights_df['Weights'])
+	            session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+	            break
+	        else:
+	            st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
+
     else:
         try:
             if 'tickers' in globals() and tickers is not None:
