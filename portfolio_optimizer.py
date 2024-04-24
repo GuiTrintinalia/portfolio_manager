@@ -890,36 +890,28 @@ if session_state.data is not None:
     load_weights = st.selectbox('Select method to entry weights', ['Load weights', 'manually'])
     if load_weights == 'Load weights':
         weights_df = st.experimental_data_editor(tickers_df)
-	if not weights_df['Weights'].empty:
-	    sum_of_weights = weights_df['Weights'].sum()
-	else:
-	    sum_of_weights = 0
-
-            total_shares.append(weights_df['Weights'])
-            session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+        if not weights_df['Weights'].empty:
+            sum_of_weights = weights_df['Weights'].sum()
         else:
-            st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
+            sum_of_weights = 0
+
+        total_shares.append(weights_df['Weights'])
+        session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
     else:
-        try:
-            if 'tickers' in globals() and tickers is not None:
-                for ticker in tickers:
-                    share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
-                    total_shares.append(share)
-                allocated_shares = sum(total_shares)
-                shares_to_allocate = 1 - allocated_shares
-                if 0.0 < allocated_shares < 1.0:
-                    st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
-                elif shares_to_allocate < 0:
-                    st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
-                else:
-                    session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-            else:
-                st.write("Please download tickers before continuing.")
-        except NameError:
-            st.write("Please download tickers before continuing.")
+        st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
+else:
+    try:
+        if 'tickers' in globals() and tickers is not None:
+            for ticker in tickers:
+                share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
+                total_shares.append(share)
+            allocated_shares = sum(total_shares)
+            shares_to_allocate = 1 - allocated_shares
+            if 0.0 < allocated_shares < 1.0:
+                st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
+            elif shares_to_allocate < 0:
+                st.write(f'M
 
-
-  
 if session_state.df is not None:
    st.dataframe(session_state.df)
    st.subheader('Optimization', divider='rainbow')
