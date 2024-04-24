@@ -858,7 +858,11 @@ if session_state.data is not None:
     st.dataframe(session_state.data)
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
     tickers  = set(tickers)
-    st.dataframe(tickers)
+    tickers_df = pd.DataFrame(tickers)
+    tickers_df.rename(columns={'value': 'tickers'}, inplace=True)
+    tickers_df['Weights'] = ''
+
+
 
 
 st.subheader('Assets allocation', divider='rainbow')
@@ -890,9 +894,7 @@ if session_state.data is not None:
         if 'tickers' in globals() and tickers is not None:
             load_weights = st.button('Load weights')
             if load_weights:
-                fill_weights = pd.DataFrame({'Ticker': tickers, 'Weights': np.nan})
-                st.dataframe(fill_weights)
-                weights_df = st.experimental_data_editor(fill_weights)
+                weights_df = st.experimental_data_editor(tickers_df)
                 editions = weights_df.loc[weights_df['Weights'].idxmax()]['Ticker']
             else:
                 for ticker in tickers:
