@@ -890,35 +890,33 @@ total_shares = []
 invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
 
 if session_state.data is not None:
-    load_weights = st.button('Load weights')
-    if load_weights:
-	    while True:
+    load_weights = st.selectbox('Select method to entry weights', ['Load weights', 'manually'])
+	if load_weights == 'Load weights':
 	        weights_df = st.experimental_data_editor(tickers_df)
 	        if round(np.sum(weights_df['Weights'])) == 1:
-	            total_shares.append(weights_df['Weights'])
-	            session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-	            break
-	        else:
-	            st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
+	            	total_shares.append(weights_df['Weights'])
+	            	session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+		else:
+		    	st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
 
-    else:
-        try:
-            if 'tickers' in globals() and tickers is not None:
-                for ticker in tickers:
-                    share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
-                    total_shares.append(share)
-                allocated_shares = sum(total_shares)
-                shares_to_allocate = 1 - allocated_shares
-                if 0.0 < allocated_shares < 1.0:
-                    st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
-                elif shares_to_allocate < 0:
-                    st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
-                else:
-                    session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-            else:
-                st.write("Please download tickers before continuing.")
-        except NameError:
-            st.write("Please download tickers before continuing.")
+    	else:
+        	try:
+	            if 'tickers' in globals() and tickers is not None:
+	                for ticker in tickers:
+	                    	share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
+	                    	total_shares.append(share)
+	                	allocated_shares = sum(total_shares)
+	                	shares_to_allocate = 1 - allocated_shares
+	                 	if 0.0 < allocated_shares < 1.0:
+	                   		 st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
+	                	elif shares_to_allocate < 0:
+	                    		st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
+	                	else:
+	                    		session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+	        else:
+	                st.write("Please download tickers before continuing.")
+	        except NameError:
+	            st.write("Please download tickers before continuing.")
 
 
   
