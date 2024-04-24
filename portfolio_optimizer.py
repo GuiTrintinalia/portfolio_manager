@@ -859,11 +859,8 @@ if session_state.data is not None:
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
     tickers  = set(tickers)
     tickers_df = pd.DataFrame(tickers)
-    tickers_df.rename(columns={'value': 'tickers'}, inplace=True)
-    tickers_df['Weights'] = ''
-
-
-
+    tickers_df.rename(columns={tickers_df.columns[0]: 'tickers'}, inplace=True)
+    tickers_df['Weights'] = np.nan
 
 st.subheader('Assets allocation', divider='rainbow')
 with st.expander("See explanation"):
@@ -893,7 +890,11 @@ if session_state.data is not None:
     load_weights = st.selectbox('Select method to entry weights', ['Load weights', 'manually'])
     if load_weights == 'Load weights':
         weights_df = st.experimental_data_editor(tickers_df)
-        if round(np.sum(weights_df['Weights'])) == 1:
+	if not weights_df['Weights'].empty:
+	    sum_of_weights = weights_df['Weights'].sum()
+	else:
+	    sum_of_weights = 0
+
             total_shares.append(weights_df['Weights'])
             session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
         else:
