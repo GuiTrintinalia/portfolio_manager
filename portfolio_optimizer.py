@@ -895,6 +895,7 @@ if session_state.data is not None:
         weights_df = st.experimental_data_editor(tickers_df)
         if round(np.sum(weights_df['Weights'])) == 1:
             total_shares.append(weights_df['Weights'])
+            session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
         else:
             st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
     else:
@@ -907,15 +908,14 @@ if session_state.data is not None:
                     shares_to_allocate = 1 - allocated_shares
                 if 0.0 < allocated_shares < 1.0:
                     st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
-                else:
+                elif:
                     st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
+		else:
+                    session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
         except NameError:
             st.write("Please download tickers before continuing.")
 
-    if round(sum(total_shares)) == 1: 
-        st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-        session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-
+  
 if session_state.df is not None:
    st.dataframe(session_state.df)
    st.subheader('Optimization', divider='rainbow')
