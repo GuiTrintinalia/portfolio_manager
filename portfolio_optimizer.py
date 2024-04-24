@@ -17,8 +17,6 @@ import plotly.graph_objects as go
 # for combinations
 import itertools
 
-
-
 def candlestick_chart(dfs, selected_var):
     suffixes = ['Close_', 'Open_', 'Low_', 'High_']
     candles = []
@@ -889,9 +887,8 @@ if session_state.data is not None:
     try:
         if 'tickers' in globals() and tickers is not None:
             load_weights = st.button('Load weights')
-            fill_weights = {'Ticker': tickers, 'Weights': [''] * len(tickers)}
-            fill_weights = pd.DataFrame(fill_weights)
             if load_weights:
+		fill_weights = pd.DataFrame({'Ticker': tickers, 'Weights': [''] * len(tickers)})
                 weights_df = st.experimental_data_editor(fill_weights)
                 editions = weights_df.loc[weights_df['Weights'].idxmax()]['Ticker']
             else:
