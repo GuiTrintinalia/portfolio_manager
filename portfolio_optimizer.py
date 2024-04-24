@@ -917,6 +917,7 @@ if session_state.data is not None:
         except NameError:
             st.write("Please download tickers before continuing.")
 
+
   
 if session_state.df is not None:
    st.dataframe(session_state.df)
