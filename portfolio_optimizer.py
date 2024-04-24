@@ -888,7 +888,7 @@ if session_state.data is not None:
         if 'tickers' in globals() and tickers is not None:
             load_weights = st.button('Load weights')
             if load_weights:
-		fill_weights = pd.DataFrame({'Ticker': tickers, 'Weights': [''] * len(tickers)})
+                fill_weights = pd.DataFrame({'Ticker': tickers, 'Weights': [''] * len(tickers)})
                 weights_df = st.experimental_data_editor(fill_weights)
                 editions = weights_df.loc[weights_df['Weights'].idxmax()]['Ticker']
             else:
@@ -907,7 +907,6 @@ if session_state.data is not None:
                     st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
     except NameError:
         st.write("Please download tickers before continuing.")
-
 
 if session_state.df is not None:
    st.dataframe(session_state.df)
