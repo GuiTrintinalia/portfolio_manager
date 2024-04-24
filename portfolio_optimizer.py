@@ -462,6 +462,28 @@ file  = st.file_uploader("Upload Excel/CSV file", type=["xlsx", "csv"])
 if file:
     session_state.data = upload_file(file)
 
+acoes_pesos = {
+    "RRRP3.SA": 0.00388, "ALOS3.SA": 0.00552, "ALPA4.SA": 0.00078, "ABEV3.SA": 0.02473, "ARZZ3.SA": 0.00154,
+    "ASAI3.SA": 0.00877, "AZUL4.SA": 0.00154, "B3SA3.SA": 0.02948, "BBSE3.SA": 0.01036, "BBDC3.SA": 0.00859,
+    "BBDC4.SA": 0.03338, "BRAP4.SA": 0.0025, "BBAS3.SA": 0.03721, "BRKM5.SA": 0.00285, "BRFS3.SA": 0.01382,
+    "BPAC11.SA": 0.01788, "CRFB3.SA": 0.00288, "BHIA3.SA": 0.00027, "CCRO3.SA": 0.0059, "CMIG4.SA": 0.00878,
+    "CIEL3.SA": 0.00291, "COGN3.SA": 0.00173, "CPLE6.SA": 0.00734, "CSAN3.SA": 0.00799, "CPFE3.SA": 0.00311,
+    "CMIN3.SA": 0.00266, "CVCB3.SA": 0.00052, "CYRE3.SA": 0.00269, "DXCO3.SA": 0.00104, "ELET3.SA": 0.03495,
+    "ELET6.SA": 0.00538, "EMBR3.SA": 0.01083, "ENGI11.SA": 0.0072, "ENEV3.SA": 0.00933, "EGIE3.SA": 0.00485,
+    "EQTL3.SA": 0.01632, "EZTC3.SA": 0.00059, "FLRY3.SA": 0.00168, "GGBR4.SA": 0.01199, "GOAU4.SA": 0.00338,
+    "NTCO3.SA": 0.0067, "SOMA3.SA": 0.00145, "HAPV3.SA": 0.00753, "HYPE3.SA": 0.00564, "IGTI11.SA": 0.00217,
+    "IRBR3.SA": 0.00157, "ITSA4.SA": 0.02445, "ITUB4.SA": 0.07289, "JBSS3.SA": 0.01186, "KLBN11.SA": 0.008,
+    "RENT3.SA": 0.02034, "LREN3.SA": 0.00702, "LWSA3.SA": 0.00091, "MGLU3.SA": 0.00215, "MRFG3.SA": 0.00151,
+    "BEEF3.SA": 0.00075, "MRVE3.SA": 0.00115, "MULT3.SA": 0.00305, "PCAR3.SA": 0.0005, "PETR3.SA": 0.04907,
+    "PETR4.SA": 0.08974, "RECV3.SA": 0.00275, "PRIO3.SA": 0.01867, "PETZ3.SA": 0.00076, "RADL3.SA": 0.01519,
+    "RAIZ4.SA": 0.00174, "RDOR3.SA": 0.01363, "RAIL3.SA": 0.01219, "SBSP3.SA": 0.01341, "SANB11.SA": 0.00442,
+    "SMTO3.SA": 0.00191, "CSNA3.SA": 0.00411, "SLCE3.SA": 0.00176, "SUZB3.SA": 0.01949, "TAEE11.SA": 0.00368,
+    "VIVT3.SA": 0.00968, "TIMS3.SA": 0.00658, "TOTS3.SA": 0.00693, "TRPL4.SA": 0.00465, "UGPA3.SA": 0.01342,
+    "USIM5.SA": 0.00222, "VALE3.SA": 0.12501, "VAMO3.SA": 0.00146, "VBBR3.SA": 0.01209, "WEGE3.SA": 0.0267,
+    "YDUQ3.SA": 0.00195
+}
+
+
 
 currencies_dict  =  {'USD/JPY': 'USDJPY=X', 'USD/BRL': 'BRL=X', 'USD/ARS': 'ARS=X', 'USD/PYG': 'PYG=X', 'USD/UYU': 'UYU=X',
                      'USD/CNY': 'CNY=X', 'USD/KRW': 'KRW=X', 'USD/MXN': 'MXN=X', 'USD/IDR': 'IDR=X', 'USD/EUR': 'EUR=X',
@@ -775,11 +797,6 @@ assets_list = {'commodities':commodities_dict,
                'currencies': currencies_dict, 
                'crypto': crypto_dict}
 
-
-
-
-
-
 selected_dict_names = st.multiselect('Select dictionaries to combine', list(assets_list.keys()))
 combined_dict = {}
 for name in selected_dict_names:
@@ -871,24 +888,31 @@ invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=
 if session_state.data is not None:
     try:
         if 'tickers' in globals() and tickers is not None:
+            load_weights = st.button('Load weights')
+            fill_weights = {'Ticker': tickers, 'Weights': [''] * len(tickers)}
+            fill_weights = pd.DataFrame(fill_weights)
+            if load_weights:
+		weights_df = st.experimental_data_editor(fill_weights)
+                editions = weights_df.loc[weights_df['Weights'].idxmax()]['Ticker']
+        else:
             for ticker in tickers:
-                share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value = 1.0/len(tickers), step=0.05, format="%.2f")
+                share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
                 total_shares.append(share)
-                allocated_shares =  sum(total_shares)
+                allocated_shares = sum(total_shares)
                 shares_to_allocate = 1 - allocated_shares
-                
+
             if allocated_shares == 1.0:
                 st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-                session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash) 
-		    
+                session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+
             elif 0.0 < allocated_shares < 1.0:
                 st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
-            
+
             else:
                 st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
     except NameError:
         st.write("Please download tickers before continuing.")
-        
+
 if session_state.df is not None:
    st.dataframe(session_state.df)
    st.subheader('Optimization', divider='rainbow')
@@ -909,7 +933,6 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
         simulated_portfolios = efficient_frontier(session_state.portfolio, trading_days, total_shares, risk_free_rate, simulations, resample_list)
         plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharpe,expected_return, risk_taken)
         
-
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
     st.subheader('Backtesting Strategy', divider='rainbow')
     first_sharpe = st.number_input('Please select number of days to obtain the first  round of weights:', min_value=1, max_value=10000, step=15, value=252)
