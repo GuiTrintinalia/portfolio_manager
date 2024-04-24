@@ -893,8 +893,9 @@ if session_state.data is not None:
     load_weights = st.button('Load weights')
     if load_weights:
         weights_df = st.experimental_data_editor(tickers_df)
-        if not weights_df.empty and round(np.sum(weights_df['Weights'])) == 1:
+	while( not weights_df.empty and round(np.sum(weights_df['Weights'])) == 1:
             total_shares.append(weights_df['Weights'])
+	    st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df['Weights'])}
 
     else:
         try:
