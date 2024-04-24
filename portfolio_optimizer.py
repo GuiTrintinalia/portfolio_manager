@@ -895,7 +895,6 @@ if session_state.data is not None:
             load_weights = st.button('Load weights')
             if load_weights:
                 weights_df = st.experimental_data_editor(tickers_df)
-                editions = weights_df.loc[weights_df['Weights'].idxmax()]['Ticker']
             else:
                 for ticker in tickers:
                     share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
