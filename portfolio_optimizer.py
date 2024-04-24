@@ -895,7 +895,7 @@ if session_state.data is not None:
         weights_df = st.experimental_data_editor(tickers_df)
         if not weights_df.empty and round(np.sum(weights_df['Weights'])) == 1:
             total_shares.append(weights_df['Weights'])
-            break()
+            	break()
     else:
         try:
             if 'tickers' in globals() and tickers is not None:
