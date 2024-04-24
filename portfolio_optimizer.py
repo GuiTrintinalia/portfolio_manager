@@ -892,27 +892,25 @@ if session_state.data is not None:
             fill_weights = {'Ticker': tickers, 'Weights': [''] * len(tickers)}
             fill_weights = pd.DataFrame(fill_weights)
             if load_weights:
-		weights_df = st.experimental_data_editor(fill_weights)
+                weights_df = st.experimental_data_editor(fill_weights)
                 editions = weights_df.loc[weights_df['Weights'].idxmax()]['Ticker']
-        
-	else:
-            for ticker in tickers:
-                share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
-                total_shares.append(share)
-                allocated_shares = sum(total_shares)
-                shares_to_allocate = 1 - allocated_shares
-
-            if allocated_shares == 1.0:
-                st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
-                session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-
-            elif 0.0 < allocated_shares < 1.0:
-                st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
-
             else:
-                st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
+                for ticker in tickers:
+                    share = st.number_input(f'{ticker} share', min_value=0.0, max_value=1.0, value=1.0 / len(tickers), step=0.05, format="%.2f")
+                    total_shares.append(share)
+                    allocated_shares = sum(total_shares)
+                    shares_to_allocate = 1 - allocated_shares
+
+                if allocated_shares == 1.0:
+                    st.write(f'Allocation: {sum(total_shares) * 100:.2f}%')
+                    session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+                elif 0.0 < allocated_shares < 1.0:
+                    st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
+                else:
+                    st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
     except NameError:
         st.write("Please download tickers before continuing.")
+
 
 if session_state.df is not None:
    st.dataframe(session_state.df)
