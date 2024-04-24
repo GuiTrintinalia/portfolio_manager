@@ -894,13 +894,12 @@ if session_state.data is not None:
             sum_of_weights = weights_df['Weights'].sum()
         else:
             sum_of_weights = 0
-		
-	if int(sum_of_wieghts) == 1:
+
+        if int(sum_of_weights) == 1:
             total_shares.append(weights_df['Weights'])
             session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
-		
-    else:
-        st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
+        else:
+            st.markdown(f'Missing Allocation: 1 - {np.sum(weights_df["Weights"])}')
 else:
     try:
         if 'tickers' in globals() and tickers is not None:
