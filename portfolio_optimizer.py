@@ -910,7 +910,14 @@ else:
             if 0.0 < allocated_shares < 1.0:
                 st.write(f'You must allocate another {(shares_to_allocate * 100):.2f}% on assets!')
             elif shares_to_allocate < 0:
-                st.write(f'M
+                st.write(f'Max Allocation exceeded. Please reshare {abs(shares_to_allocate * 100):.2f}%')
+            else:
+                session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+        else:
+            st.write("Please download tickers before continuing.")
+    except NameError:
+        st.write("Please download tickers before continuing.")
+
 
 if session_state.df is not None:
    st.dataframe(session_state.df)
