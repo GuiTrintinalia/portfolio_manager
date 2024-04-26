@@ -735,8 +735,7 @@ if session_state.data is not None:
     st.dataframe(session_state.data)
     tickers = [str(col).split("_")[0] for col in session_state.data.columns]
     tickers  = set(tickers)
-    tickers_df = pd.DataFrame(tickers)
-    tickers_df.rename(columns={tickers_df.columns[0]: 'tickers'}, inplace=True)
+    tickers_df = pd.DataFrame(tickers, columns=['Tickers'])
     tickers_df['Weights'] = np.nan
 
 st.subheader('Assets allocation', divider='rainbow')
