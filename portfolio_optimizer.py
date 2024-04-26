@@ -665,7 +665,7 @@ commodities_dict = {
 selected_timeframes = st.selectbox('Select Timeframe:', ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'], index=7)
 
 assets_list = {'commodities':commodities_dict, 
-               'b3_stocs': b3_stocks,
+               'b3_stocks': b3_stocks,
                'SP500': sp500_dict,
                'NASDAC100':nasdaq_dict,
                'indexes': idx_dict,
