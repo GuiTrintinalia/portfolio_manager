@@ -568,7 +568,7 @@ b3_stocks = {
 }
 
 
-indexes_dict =     {
+idx_dict =     {
                     'S&P GSCI': 'GD=F', 'IBOVESPA': '^BVSP', 'S&P/CLX IPSA': '^IPSA',
                     'MERVAL': '^MERV', 'IPC MEXICO': '^MXX', 'S&P 500': '^GSPC',
                     'Dow Jones Industrial Average': '^DJI', 'NASDAQ Composite': '^IXIC',
@@ -581,7 +581,7 @@ indexes_dict =     {
                     'HANG SENG INDEX': '^HSI', 'SSE Composite Index': '000001.SS',
                     'Shenzhen Index': '399001.SZ', 'STI Index': '^STI', 'S&P/ASX 200': '^AXJO',
                     'ALL ORDINARIES': '^AORD', 'S&P BSE SENSEX': '^BSESN', 'IDX COMPOSITE': '^JKSE',
-                    'FTSE Bursa Malaysia KLCI': '^KLSE', 'S&P/NZX 50 INDEX GROSS ( GROSS': '^NZ50',
+                    'FTSE Bursa Malaysia KLCI': '^KLSE', 'S&P/NZX 50 INDEX GROSS': '^NZ50',
                     'KOSPI Composite Index': '^KS11', 'TSEC weighted index': '^TWII',
                     'TA-125': '^TA125.TA', 'Top 40 USD Net TRI Index': '^JN0U.JO', 'NIFTY 50': '^NSEI'
                     }
@@ -668,7 +668,7 @@ assets_list = {'commodities':commodities_dict,
                'b3_stocs': b3_stocks,
                'SP500': sp500_dict,
                'NASDAC100':nasdaq_dict,
-               'indexes': indexes_dict,
+               'indexes': idx_dict,
                'currencies': currencies_dict, 
                'crypto': crypto_dict}
 
