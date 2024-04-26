@@ -773,7 +773,7 @@ if session_state.data is not None:
 
         if int(sum_of_weights) == 1:
             total_shares.append(weights_df['Weights'])
-            st.dataframe(total_shares)
+            st.dataframe(total_shares.t())
             session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
         else:
             st.markdown(f'Missing Allocation: {round(1- np.sum(weights_df["Weights"]),3)}')
