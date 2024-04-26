@@ -69,7 +69,7 @@ def download_data(data, period='1y'):
             hist.index = pd.to_datetime(hist.index.map(lambda x: x.strftime('%Y-%m-%d')))
             dfs.append(hist)
 
-    combined_df = pd.concat(dfs, axis=1, join='inner')  # Use join='outer' to handle different time indices
+    combined_df = pd.concat(dfs, axis=1, join='outer')  # Use join='outer' to handle different time indices
     return combined_df
 
 def upload_file(file):
@@ -124,10 +124,6 @@ def fill_moving_avg(df, window_size, method='gap'):
             df[col] = df[col].rolling(window=window_size, min_periods=1).mean()
             df[col] = df[col].fillna(method='bfill')
     return df
-
-def drop_nan_rows(df):
-    df_cleaned = df.dropna()
-    return df_cleaned
 	
 def get_latest_values(df, tickers):
     latest_values = {}
@@ -138,24 +134,25 @@ def get_latest_values(df, tickers):
     
     return latest_values
 
-def compute_investments(df, tickers, total_shares, available_cash):
-    latest_values = get_latest_values(df, tickers)
+def compute_investments(df, weights_df, available_cash):
+    latest_values = get_latest_values(df, weights_df['Tickers'])
     investments = pd.DataFrame(columns=['Ticker', 'Price', 'Papers', 'Share %', 'Invested', 'Cash'])
 
     cash_to_invest = available_cash  # Initialize cash_to_invest
 
-    for i, ticker in enumerate(tickers):
-        share = total_shares[i]
+    for ticker, weight in zip(weights_df['Tickers'], weights_df['Weights']):
         price = latest_values[ticker]
-        invested = (share * available_cash)
-        papers = invested / price
+        shares = (weight * available_cash) / price
+        invested = shares * price
         cash_to_invest -= invested  # Subtract the invested amount for each iteration
 
         row_data = {'Ticker': ticker, 'Price': price, 'Invested': invested, 
-                    'Share %': share*100, 'Papers': papers, 'Cash': round(cash_to_invest, 2)}
+                    'Share %': weight * 100, 'Papers': shares, 'Cash': round(cash_to_invest, 2)}
         investments = pd.concat([investments, pd.DataFrame([row_data])], ignore_index=True)
 
     return investments[['Ticker', 'Price', 'Papers', 'Share %', 'Invested', 'Cash']]
+
+
 
 def logreturns(df):
     df.columns = df.columns.str.split('_').str[0]
@@ -182,31 +179,35 @@ def return_over_time(df):
     st.plotly_chart(fig)
     
     
-def efficient_frontier(df, trading_days,total_shares, risk_free_rate, simulations= 1000, resampler='A'):
+def efficient_frontier(df, trading_days,weights_df, risk_free_rate, simulations= 1000, resampler='A'):
     return_over_time(df)
     logreturns(df)
-    
+
+    Weights = weights_df['Weights'].values
     cov_matrix = df.pct_change().apply(lambda x: np.log(1+x)).cov()
-    portfolio_var = cov_matrix.mul(total_shares,axis=0).mul(total_shares,axis=1).sum().sum()
+    portfolio_var = np.dot(Weights.T, np.dot(cov_matrix, Weights))
+    
     standard_deviation = np.sqrt(portfolio_var) 
     annualized_risk  = standard_deviation *np.sqrt(trading_days)
     simple_annualized_risk = np.exp(annualized_risk) - 1
     simple_risk = np.exp(annualized_risk) - 1
+    
     st.markdown(f'Annualized portfolio risk:  **{simple_risk:.4f}**')
-    annualized_returns = df.resample(resampler).last()
-    st.dataframe(annualized_returns)
+    annualized_returns = df.resample(resampler).last()    
     annualized_returns = df.pct_change().apply(lambda x: np.log(1 + x)).mean() * trading_days
     annualized_returns = annualized_returns.rename('Log Returns')
     simple_returns = np.exp(annualized_returns) - 1
     simple_returns = simple_returns.rename('Simple Returns')
-    weights_series = pd.Series(total_shares, index=df.columns, name='Weights')
+    weights_series = pd.Series(Weights, index=df.columns, name='Weights')
+  
+    
     returns_df = pd.concat([annualized_returns, simple_returns, weights_series], axis=1)
     returns_df['Weighted Returns'] = returns_df['Simple Returns'] * returns_df['Weights']
     returns_df['Cumulative Portfolio Returns'] = returns_df['Weighted Returns'].cumsum()
 
     st.markdown(f'**Annualized portfolio return:**')
     st.dataframe(returns_df)
-    assets_return = simple_returns *total_shares
+    assets_return = simple_returns * Weights
     portfolio_return = assets_return.sum()
     st.markdown(f'Annualized portfolio return: **{portfolio_return:.4f}**')
     sharpe_ratio = (portfolio_return - risk_free_rate)/ simple_annualized_risk
@@ -301,6 +302,7 @@ def plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharp
     
     max_sharpe_ratio_value = simulated_portfolios['Sharpe_ratio'].max()
     st.markdown(f'Max Sharpe Ratio: **{max_sharpe_ratio_value:.2f}**')
+    st.write(f'Max_sharpe:  {max_sharpe_ratio_value}')
     st.plotly_chart(frontier)
     
     
@@ -353,6 +355,7 @@ def backtest_frontier(df_list, risk_free_rate, trading_days, simulations=1000):
     final_df = pd.concat(result_dfs, ignore_index=True)
 
     return final_df
+
 def get_max_sharpe_per_id(final_df, max_values, min_values):
     weight_columns = [column for column in final_df.columns if column.endswith('_Weight')]
     num_columns = len(weight_columns)
@@ -727,7 +730,7 @@ if st.sidebar.button("Apply") and session_state.data is not None:
 st.sidebar.markdown('**Missing Values**')    
 remove_nan = st.sidebar.button('Dropna')
 if remove_nan:
-    session_state.data = drop_nan_rows(session_state.data)
+    session_state.data = session_state.data.dropna(axis = 1)
 
 if session_state.data is not None:
     st.markdown(f'**Total of missing entries:** {session_state.data.isna().sum().sum()}')
@@ -759,21 +762,18 @@ resampling_options = ['A', 'AS', 'BA', 'BAS', '3M', '4M', '6M', '12M',
                       'M', 'BM', 'MS', 'BMS', 
                       'W', 'D'] 
 
-total_shares = []
 invested_cash = st.number_input("Enter invested cash", min_value=0.0, max_value=1e12, step=1000.0, value=100000.00, format="%.2f")
 
-
 if session_state.data is not None:    
-    weights_df = st.experimental_data_editor(tickers_df)
+    weights_df = st.data_editor(tickers_df)
     if not weights_df['Weights'].empty:
         sum_of_weights = weights_df['Weights'].sum()
     else:
         sum_of_weights = 0
 
     if int(sum_of_weights) == 1:
-        total_shares.append(weights_df['Weights'])
-        st.dataframe(total_shares))
-        session_state.df = compute_investments(session_state.data, tickers, total_shares, invested_cash)
+        session_state.df = compute_investments(session_state.data, weights_df , invested_cash)
+
     else:
         st.markdown(f'Missing Allocation: {round(1- np.sum(weights_df["Weights"]),3)}')
 
@@ -794,13 +794,22 @@ if session_state.portfolio is not None and not session_state.portfolio.empty:
     st.markdown(f'Expected Sharpe Ratio: **{expected_sharpe:.2f}**')
     run_simulations = st.button('Run simulations')
     if run_simulations:
-        simulated_portfolios = efficient_frontier(session_state.portfolio, trading_days, total_shares, risk_free_rate, simulations, resample_list)
+        simulated_portfolios = efficient_frontier(session_state.portfolio, trading_days, weights_df, risk_free_rate, simulations, resample_list)
         plot_efficient_frontier(simulated_portfolios, risk_free_rate, expected_sharpe,expected_return, risk_taken)
         
 if session_state.portfolio is not None and session_state.portfolio.shape[1] >= 2:
     st.subheader('Backtesting Strategy', divider='rainbow')
-    first_sharpe = st.number_input('Please select number of days to obtain the first  round of weights:', min_value=1, max_value=10000, step=15, value=252)
-    offset = st.number_input('Please select number of days to jump:', min_value=1, max_value=10000, step=15, value=30)
+    
+    first_sharpe = st.number_input('Please select number of days to obtain the first  round of weights:', 
+                                   min_value=1,
+                                   max_value=10000,
+                                   step=15, 
+                                   value=252)
+    offset = st.number_input('Please select number of days to jump:', min_value=1, 
+                             max_value=10000, 
+                             step=15, 
+                             value=30)
+    
     
     dates_range = session_state.portfolio.index.unique()
     backtest_dfs = []
